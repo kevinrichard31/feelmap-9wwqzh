@@ -1,0 +1,8 @@
+{
+  "name": "feelmap",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite",
+  "id": "d5965b27"
+}
