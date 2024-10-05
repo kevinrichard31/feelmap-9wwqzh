@@ -12,16 +12,16 @@ const Tab1: React.FC = () => {
   useEffect(() => {
     const fetchCoordinates = async () => {
       try {
-        const position = await Geolocation.getCurrentPosition();
+        const position: GeolocationPosition = await Geolocation.getCurrentPosition();
         setCoordinates(position);
       } catch (err) {
         console.error('Error getting location:', err);
         setError('Unable to retrieve your location');
       }
     };
-
+  
     fetchCoordinates();
-  }, []);
+  }, []);  
 
   useEffect(() => {
     if (coordinates && !map) {
