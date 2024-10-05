@@ -12,7 +12,9 @@ const Tab1: React.FC = () => {
   useEffect(() => {
     const fetchCoordinates = async () => {
       try {
-        const position: Position = await Geolocation.getCurrentPosition();
+        const position: Position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true
+        });
         setCoordinates(position);
       } catch (err) {
         console.error('Error getting location:', err);
