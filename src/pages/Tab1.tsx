@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import { Geolocation } from '@capacitor/geolocation';
+import { Geolocation, Position } from '@capacitor/geolocation';
 import L from 'leaflet';
 import './Tab1.css';
 
 const Tab1: React.FC = () => {
-  const [coordinates, setCoordinates] = useState<GeolocationPosition | null>(null);
+  const [coordinates, setCoordinates] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [map, setMap] = useState<L.Map | null>(null);
 
   useEffect(() => {
     const fetchCoordinates = async () => {
       try {
-        const position: GeolocationPosition = await Geolocation.getCurrentPosition();
+        const position: Position = await Geolocation.getCurrentPosition();
         setCoordinates(position);
       } catch (err) {
         console.error('Error getting location:', err);
