@@ -1,2 +1,31 @@
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
+.tab3-button {
+    position: absolute;
+    right: 16px; /* Adjust as necessary for your layout */
+    bottom: 30px; /* Adjust to position above the tab bar */
+    color: black;
+    border-radius: 20px; /* Optional: for rounded corners */
+    z-index: 10; /* Ensure it appears above the tab bar */
+    --background: white;
+    width: 80px;
+    height: 80px;
+  }
+  
+  .white-space {
+    width: 80px; /* Adjust width as needed */
+    height: 56px; /* Height of IonTabBar buttons */
+    background-color: white; /* Make the background white */
+    display: inline-block; /* Display it inline with the other tabs */
+    z-index: 1; /* Make sure it stays in front */
+  }
+  .fab-custom {
+    position: absolute;
+    bottom: 50px; /* Adjust to position above the tab bar */
+    right: 16px;  /* Adjust for right-side positioning */
+    z-index: 100; /* Ensure it's on top of the tab bar */
+  }
+    
+  .logo-button {
+    width: 50px;
+  }
