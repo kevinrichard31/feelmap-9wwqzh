@@ -1,6 +1,7 @@
 // utils/api.ts
 const API_URL = import.meta.env.VITE_API_URL;
 export const saveEmotion = async (userId: string, emotionDetails: {latitude: number, longitude: number, emotionName: string, description: string}) => {
+  console.log(userId + 'sent')
     try {
       const response = await fetch(API_URL + '/emotions/', {
         method: 'POST',

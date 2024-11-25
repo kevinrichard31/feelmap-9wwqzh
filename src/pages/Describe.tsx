@@ -46,7 +46,10 @@ const Describe: React.FC = () => {
         setError('Failed to create user');
         return;
       }
+      console.log(userId + 'created')
+      console.log(userId.id + 'created')
       await asyncLocalStorage.setItem('userId', userId.id);
+      userId = userId.id
     }
  
   
@@ -60,7 +63,7 @@ const Describe: React.FC = () => {
       description: inputRef.current?.value || '',
     };
   
-    const result = await saveEmotion(userId.id, emotionDetails);
+    const result = await saveEmotion(userId, emotionDetails);
   
     if (result) {
       console.log('Emotion saved successfully:', result);
