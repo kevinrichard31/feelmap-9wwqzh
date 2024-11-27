@@ -4,8 +4,8 @@ import { Geolocation, Position } from '@capacitor/geolocation';
 import { useIonViewWillEnter } from '@ionic/react';
 import L from 'leaflet';
 import './Tab1.css';
-import 'leaflet/dist/leaflet.css'; // Ensure Leaflet styles are included
-import markerIcon from '../icons/current.svg'; // Import your custom icon
+import 'leaflet/dist/leaflet.css';
+import markerIcon from '../icons/current.svg';
 import { getAllEmotionsWithAuth } from '../utils/api';
 import { emotions as emotionData } from '../data/emotions';
 
@@ -13,22 +13,21 @@ const Tab1: React.FC = () => {
   const [coordinates, setCoordinates] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [map, setMap] = useState<L.Map | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // New loading state
-  const routerLink = useIonRouter();
-
+  const [loading, setLoading] = useState<boolean>(true);
   const [emotions, setEmotions] = useState<any[]>([]);
+  const routerLink = useIonRouter();
 
   const fetchCoordinates = async () => {
     try {
       const position: Position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true
+        enableHighAccuracy: true,
       });
       setCoordinates(position);
-      setLoading(false); // Set loading to false once coordinates are fetched
     } catch (err) {
       console.error('Error getting location:', err);
       setError('Unable to retrieve your location');
-      setLoading(false); // Set loading to false in case of an error
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,118 +36,88 @@ const Tab1: React.FC = () => {
     const password = localStorage.getItem('password');
 
     if (userId && password) {
-      const fetchedEmotions = await getAllEmotionsWithAuth(userId, password);
-      setEmotions(fetchedEmotions.reverse());
+      try {
+        const fetchedEmotions = await getAllEmotionsWithAuth(userId, password);
+        setEmotions(fetchedEmotions.reverse());
+      } catch (err) {
+        console.error('Error fetching emotions:', err);
+      }
     } else {
       console.error('Identifiants non trouvés dans le localStorage');
     }
   };
 
   const getIconUrl = (emotionName: string) => {
-    const emotion = emotionData.find(e => e.name === emotionName);
-    console.log(emotion)
-    return emotion ? emotion.imageStatic : '/icons/default.svg'; // Utiliser une icône par défaut si l'émotion n'est pas trouvée
+    const emotion = emotionData.find((e) => e.name === emotionName);
+    return emotion ? emotion.imageStatic : '/icons/default.svg';
   };
 
-  // Fonction pour gérer le clic sur un marqueur
   const handleMarkerClick = (date: string) => {
     routerLink.push(`/emotiondetail/?date=${encodeURIComponent(date)}`);
   };
 
+  // Initialise la carte une fois les coordonnées récupérées
   useEffect(() => {
-
-
     if (coordinates && !map) {
-      setLoading(true); // Set loading to true while initializing the map
-      // Initialize the map once we have the coordinates
-      const mapInstance = L.map('map').setView([coordinates.coords.latitude, coordinates.coords.longitude], 13);
+      const mapInstance = L.map('map').setView(
+        [coordinates.coords.latitude, coordinates.coords.longitude],
+        13
+      );
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(mapInstance);
 
-      // Define a custom icon for the marker
       const customIcon = L.icon({
         iconUrl: markerIcon,
-        iconSize: [16, 16], // Adjust the size as needed
-        iconAnchor: [16, 16], // Adjust to position the icon correctly
-        popupAnchor: [-8, -16], // Position of the popup relative to the icon
+        iconSize: [16, 16],
+        iconAnchor: [8, 16],
+        popupAnchor: [0, -16],
       });
 
-      // Add a marker with the custom icon at the user's location
-      L.marker([coordinates.coords.latitude, coordinates.coords.longitude], { icon: customIcon })
+      L.marker([coordinates.coords.latitude, coordinates.coords.longitude], {
+        icon: customIcon,
+      })
         .addTo(mapInstance)
         .bindPopup('You are here')
         .openPopup();
 
       setMap(mapInstance);
-      setLoading(false); // Set loading to false once map is initialized
     }
-
-
   }, [coordinates, map]);
 
+  // Ajout des marqueurs lorsque les émotions sont disponibles et que la carte est initialisée
+  useEffect(() => {
+    if (map && emotions.length > 0) {
+      emotions.forEach((emotion) => {
+        const emotionIcon = L.icon({
+          iconUrl: getIconUrl(emotion.emotionName),
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+          popupAnchor: [0, -32],
+        });
 
+        const emotionMarker = L.marker([emotion.latitude, emotion.longitude], {
+          icon: emotionIcon,
+        });
 
-  // Use `useIonViewWillEnter` to fetch coordinates when the tab is active
-  useIonViewWillEnter(async () => {
-
-    await fetchEmotions(); // Appel de la fonction pour récupérer les émotions
-    console.log('hello')
-
-    // Ajout des marqueurs pour les émotions
-    emotions.forEach((emotion) => {
-      // console.log('heloo')
-      const emotionIcon = L.icon({
-        iconUrl: getIconUrl(emotion.emotionName), // URL de l'icône spécifique à l'émotion
-        iconSize: [32, 32], // Taille de l'icône
-        iconAnchor: [16, 32], // Point de l'icône qui correspond à la position du marker
-        popupAnchor: [0, -32] // Point où le popup doit apparaître par rapport à l'icône
+        emotionMarker.on('click', () => handleMarkerClick(emotion.emotionDate));
+        emotionMarker.addTo(map);
       });
-
-      const emotionMarker = L.marker([emotion.latitude, emotion.longitude], { icon: emotionIcon });
-
-      // Ajout d'un événement de clic sur le marqueur
-      emotionMarker.on('click', () => handleMarkerClick(emotion.emotionDate));
-
-      emotionMarker.addTo(map);
-    });
-
-    // Nettoyage de la carte lors du démontage du composant
-
-    fetchCoordinates();
-    if (map && coordinates) {
-      // Update the map's view to the new coordinates
-      map.setView([coordinates.coords.latitude, coordinates.coords.longitude], 13);
-
-      // Define the custom icon again for updates
-      const customIcon = L.icon({
-        iconUrl: markerIcon,
-        iconSize: [16, 16],
-        iconAnchor: [16, 16],
-        popupAnchor: [0, -16],
-      });
-
-      // Update the marker position with the custom icon
-      L.marker([coordinates.coords.latitude, coordinates.coords.longitude], { icon: customIcon })
-        .addTo(map)
-        .bindPopup('You are here')
-        .openPopup();
-
-        return () => {
-          map.remove();
-        };
     }
-    
+  }, [map, emotions]);
+
+  useIonViewWillEnter(() => {
+    fetchCoordinates();
+    fetchEmotions();
   });
 
   return (
     <IonPage>
-
       <IonContent fullscreen>
         {error && <div className="error-message">{error}</div>}
         {loading && <div className="loading-message">Loading map, please wait...</div>}
-        <div id="map" style={{ height: '100%' }} /> {/* Ensure map has a defined height */}
+        <div id="map" style={{ height: '100%' }} />
       </IonContent>
     </IonPage>
   );
