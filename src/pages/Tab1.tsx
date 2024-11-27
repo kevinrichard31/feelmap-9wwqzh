@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { IonContent, IonHeader, IonPage } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, useIonRouter } from '@ionic/react';
 import { Geolocation, Position } from '@capacitor/geolocation';
 import { useIonViewWillEnter } from '@ionic/react';
 import L from 'leaflet';
 import './Tab1.css';
 import 'leaflet/dist/leaflet.css'; // Ensure Leaflet styles are included
 import markerIcon from '../icons/current.svg'; // Import your custom icon
+import { getAllEmotionsWithAuth } from '../utils/api';
+import { emotions as emotionData } from '../data/emotions';
 
 const Tab1: React.FC = () => {
   const [coordinates, setCoordinates] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [map, setMap] = useState<L.Map | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // New loading state
+  const routerLink = useIonRouter();
+
+  const [emotions, setEmotions] = useState<any[]>([]);
 
   const fetchCoordinates = async () => {
     try {
@@ -27,7 +32,32 @@ const Tab1: React.FC = () => {
     }
   };
 
+  const fetchEmotions = async () => {
+    const userId = localStorage.getItem('userId');
+    const password = localStorage.getItem('password');
+
+    if (userId && password) {
+      const fetchedEmotions = await getAllEmotionsWithAuth(userId, password);
+      setEmotions(fetchedEmotions.reverse());
+    } else {
+      console.error('Identifiants non trouvés dans le localStorage');
+    }
+  };
+
+  const getIconUrl = (emotionName: string) => {
+    const emotion = emotionData.find(e => e.name === emotionName);
+    console.log(emotion)
+    return emotion ? emotion.imageStatic : '/icons/default.svg'; // Utiliser une icône par défaut si l'émotion n'est pas trouvée
+  };
+
+  // Fonction pour gérer le clic sur un marqueur
+  const handleMarkerClick = (date: string) => {
+    routerLink.push(`/emotiondetail/?date=${encodeURIComponent(date)}`);
+  };
+
   useEffect(() => {
+
+
     if (coordinates && !map) {
       setLoading(true); // Set loading to true while initializing the map
       // Initialize the map once we have the coordinates
@@ -54,10 +84,38 @@ const Tab1: React.FC = () => {
       setMap(mapInstance);
       setLoading(false); // Set loading to false once map is initialized
     }
+
+
   }, [coordinates, map]);
 
+
+
   // Use `useIonViewWillEnter` to fetch coordinates when the tab is active
-  useIonViewWillEnter(() => {
+  useIonViewWillEnter(async () => {
+
+    await fetchEmotions(); // Appel de la fonction pour récupérer les émotions
+    console.log('hello')
+
+    // Ajout des marqueurs pour les émotions
+    emotions.forEach((emotion) => {
+      // console.log('heloo')
+      const emotionIcon = L.icon({
+        iconUrl: getIconUrl(emotion.emotionName), // URL de l'icône spécifique à l'émotion
+        iconSize: [32, 32], // Taille de l'icône
+        iconAnchor: [16, 32], // Point de l'icône qui correspond à la position du marker
+        popupAnchor: [0, -32] // Point où le popup doit apparaître par rapport à l'icône
+      });
+
+      const emotionMarker = L.marker([emotion.latitude, emotion.longitude], { icon: emotionIcon });
+
+      // Ajout d'un événement de clic sur le marqueur
+      emotionMarker.on('click', () => handleMarkerClick(emotion.emotionDate));
+
+      emotionMarker.addTo(map);
+    });
+
+    // Nettoyage de la carte lors du démontage du composant
+
     fetchCoordinates();
     if (map && coordinates) {
       // Update the map's view to the new coordinates
@@ -76,7 +134,12 @@ const Tab1: React.FC = () => {
         .addTo(map)
         .bindPopup('You are here')
         .openPopup();
+
+        return () => {
+          map.remove();
+        };
     }
+    
   });
 
   return (

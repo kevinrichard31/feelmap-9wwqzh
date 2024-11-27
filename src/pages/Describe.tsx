@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon, useIonRouter } from '@ionic/react';
 import { useHistory } from 'react-router-dom'; 
 import './Describe.css';
 import { useEmotion } from '../contexts/EmotionContext';
@@ -12,6 +12,7 @@ const Describe: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const history = useHistory();
+  
 
   useEffect(() => {
     // Sélectionner ion-content
@@ -39,6 +40,7 @@ const Describe: React.FC = () => {
 
   const handleSave = async () => {
     let userId = await asyncLocalStorage.getItem('userId');
+    let userPassword = await asyncLocalStorage.getItem('password');
   
     if (!userId) {
       userId = await createUser();
@@ -63,7 +65,7 @@ const Describe: React.FC = () => {
       description: inputRef.current?.value || '',
     };
   
-    const result = await saveEmotion(userId, emotionDetails);
+    const result = await saveEmotion(userId,userPassword, emotionDetails);
   
     if (result) {
       console.log('Emotion saved successfully:', result);
