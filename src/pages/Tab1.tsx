@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IonContent, IonHeader, IonPage, useIonRouter } from '@ionic/react';
+import { IonContent, IonPage, useIonRouter } from '@ionic/react';
 import { Geolocation, Position } from '@capacitor/geolocation';
 import { useIonViewWillEnter } from '@ionic/react';
 import L from 'leaflet';
@@ -12,10 +12,12 @@ import { emotions as emotionData } from '../data/emotions';
 const Tab1: React.FC = () => {
   const [coordinates, setCoordinates] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [map, setMap] = useState<L.Map | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [emotions, setEmotions] = useState<any[]>([]);
   const routerLink = useIonRouter();
+
+  // Référence pour la carte Leaflet
+  const mapRef = React.useRef<L.Map | null>(null);
 
   const fetchCoordinates = async () => {
     try {
@@ -56,9 +58,12 @@ const Tab1: React.FC = () => {
     routerLink.push(`/emotiondetail/?date=${encodeURIComponent(date)}`);
   };
 
-  // Initialise la carte une fois les coordonnées récupérées
-  useEffect(() => {
-    if (coordinates && !map) {
+  const initializeMap = () => {
+    if (mapRef.current) {
+      mapRef.current.remove(); // Supprime l'ancienne instance de carte si elle existe
+    }
+
+    if (coordinates) {
       const mapInstance = L.map('map').setView(
         [coordinates.coords.latitude, coordinates.coords.longitude],
         13
@@ -82,13 +87,13 @@ const Tab1: React.FC = () => {
         .bindPopup('You are here')
         .openPopup();
 
-      setMap(mapInstance);
+      // Sauvegarde la référence de la carte
+      mapRef.current = mapInstance;
     }
-  }, [coordinates, map]);
+  };
 
-  // Ajout des marqueurs lorsque les émotions sont disponibles et que la carte est initialisée
-  useEffect(() => {
-    if (map && emotions.length > 0) {
+  const addMarkersToMap = () => {
+    if (mapRef.current && emotions.length > 0) {
       emotions.forEach((emotion) => {
         const emotionIcon = L.icon({
           iconUrl: getIconUrl(emotion.emotionName),
@@ -102,15 +107,25 @@ const Tab1: React.FC = () => {
         });
 
         emotionMarker.on('click', () => handleMarkerClick(emotion.emotionDate));
-        emotionMarker.addTo(map);
+        emotionMarker.addTo(mapRef.current!);
       });
     }
-  }, [map, emotions]);
+  };
 
   useIonViewWillEnter(() => {
     fetchCoordinates();
     fetchEmotions();
   });
+
+  useEffect(() => {
+    if (coordinates) {
+      initializeMap();
+    }
+  }, [coordinates]);
+
+  useEffect(() => {
+    addMarkersToMap();
+  }, [emotions]);
 
   return (
     <IonPage>
