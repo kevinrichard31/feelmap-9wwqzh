@@ -1,25 +1,13 @@
 import { 
   IonContent, 
-  IonHeader, 
   IonPage, 
-  IonTitle, 
-  IonToolbar, 
-  IonButton, 
-  IonIcon 
+  IonButton 
 } from '@ionic/react';
 import { useHistory } from 'react-router-dom'; 
 import './Describe.css';
 import { useEmotion } from '../contexts/EmotionContext';
 import { useEffect, useRef, useState } from 'react';
 import { createUser, saveEmotion } from '../utils/api';
-import { arrowBack } from 'ionicons/icons';
-
-interface EmotionDetails {
-  latitude: number | null;
-  longitude: number | null;
-  emotionName: string | null;
-  description: string;
-}
 
 const Describe: React.FC = () => {
   const { emotion, image, background, latitude, longitude } = useEmotion();
@@ -73,14 +61,18 @@ const Describe: React.FC = () => {
     setIsSaving(true);
     setError(null);
 
-    const emotionDetails: EmotionDetails = {
-      latitude: latitude || 0, // Assurez-vous d'avoir des valeurs par défaut si `latitude` ou `longitude` est null
-      longitude: longitude || 0,
-      emotionName: emotion || '',
-      description: inputRef.current?.value || '',
+    const emotionDetails = {
+      latitude: latitude ?? 0, // Garantir que latitude est un nombre
+      longitude: longitude ?? 0, // Garantir que longitude est un nombre
+      emotionName: emotion || '', // Chaîne vide si null/undefined
+      description: inputRef.current?.value || '', // Chaîne vide si non défini
     };
 
-    const result = await saveEmotion(userId, userPassword || '', emotionDetails);
+    const result = await saveEmotion(
+      userId || '', // Forcer une chaîne vide si null
+      userPassword || '', // Forcer une chaîne vide si null
+      emotionDetails
+    );
 
     if (result) {
       console.log('Emotion saved successfully:', result);
