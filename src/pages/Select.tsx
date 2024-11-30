@@ -3,6 +3,10 @@ import { useHistory } from 'react-router-dom';  // Importation de useHistory pou
 import './Select.css';
 import { emotions } from '../data/emotions';
 import { useEmotion } from '../contexts/EmotionContext';
+import { lazy } from 'react';
+
+const DescribeView = lazy(() => import('../pages/Describe'));
+
 
 const Select: React.FC = () => {
   const { setEmotion } = useEmotion();
