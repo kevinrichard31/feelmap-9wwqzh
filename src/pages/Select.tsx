@@ -7,6 +7,7 @@ import './Select.css';
 import { emotions } from '../data/emotions';
 import { useEmotion } from '../contexts/EmotionContext';
 import { lazy } from 'react';
+import { Geolocation } from '@capacitor/geolocation';
 
 const DescribeView = lazy(() => import('../pages/Describe'));
 
@@ -14,29 +15,19 @@ const Select: React.FC = () => {
   const { setEmotion } = useEmotion();
   const router = useIonRouter();
 
-  // Gestion de l'émotion et de la géolocalisation
+  // Gestion de l'émotion et de la géolocalisation avec Capacitor
   const handleClick = async (emotion: string, image: string, background: string) => {
     try {
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          ({ coords: { latitude, longitude } }) => {
-            setEmotion(emotion, image, background, latitude, longitude);
-            router.push('/describe');
-          },
-          (error) => {
-            console.error('Erreur de géolocalisation :', error);
-            // Si la géolocalisation échoue, passer des coordonnées par défaut
-            setEmotion(emotion, image, background, 0, 0);
-            router.push('/describe');
-          }
-        );
-      } else {
-        console.warn('La géolocalisation n’est pas supportée par ce navigateur.');
-        setEmotion(emotion, image, background, 0, 0);
-        router.push('/describe');
-      }
-    } catch (err) {
-      console.error('Une erreur inattendue est survenue :', err);
+      const { coords } = await Geolocation.getCurrentPosition();
+
+      const { latitude, longitude } = coords;
+      console.log('Géolocalisation réussie :', { latitude, longitude });
+
+      setEmotion(emotion, image, background, latitude, longitude);
+      router.push('/describe');
+    } catch (error) {
+      console.error('Erreur de géolocalisation :', error);
+      // Si la géolocalisation échoue, passer des coordonnées par défaut
       setEmotion(emotion, image, background, 0, 0);
       router.push('/describe');
     }
