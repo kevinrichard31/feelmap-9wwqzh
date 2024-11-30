@@ -224,8 +224,6 @@ app.post('/emotions', async (req, res) => {
     }
   });
   
-
-
   app.get('/emotions', async (req, res) => {
     try {
       const { userId, month, year } = req.query;
@@ -233,9 +231,15 @@ app.post('/emotions', async (req, res) => {
         return res.status(400).json({ error: 'Missing required query parameters' });
       }
   
-      const startDate = new Date(year, month - 1, 1); // Début du mois
-      const endDate = new Date(year, month, 0); // Fin du mois
-  
+      const currentDate = new Date();
+      // Calculer les dates de début et de fin du mois
+      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      // Définir la date de fin du mois (dernier jour du mois à 23:59:59)
+      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      console.log("🌱 - app.get - startDate:", startDate);
+      console.log("🌱 - app.get - endDate:", endDate);
       // Récupérer toutes les émotions du mois spécifié
       const emotions = await Emotion.findAll({
         where: {
@@ -244,8 +248,7 @@ app.post('/emotions', async (req, res) => {
             [Op.between]: [startDate, endDate]
           }
         },
-        order: [['emotionDate', 'DESC']], // Trier par date décroissante pour avoir les dernières émotions en premier
-        limit: 200,
+        order: [['emotionDate', 'DESC']], // Trier par date décroissante pour avoir les plus récentes en premier
         raw: true
       });
   
@@ -271,7 +274,7 @@ app.post('/emotions', async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   });
-
+  
   // Route pour récupérer toutes les émotions d'une journée pour un utilisateur
 app.get('/emotions/day', async (req, res) => {
   try {
