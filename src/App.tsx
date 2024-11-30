@@ -52,13 +52,12 @@ const App: React.FC = () => {
     const initializeUser = async () => {
       const storedUserId = localStorage.getItem('userId');
       const storedPassword = localStorage.getItem('password');
-
-      // Si l'ID n'est pas dans le localStorage, créer un nouvel utilisateur
+  
       if (!storedUserId && !storedPassword) {
         try {
           const { id, password } = await createUser();
           if (id) {
-            localStorage.setItem('userId', id); // Stocke l'ID dans localStorage
+            localStorage.setItem('userId', id);
             localStorage.setItem('password', password);
             console.log('User ID stored:', id);
           }
@@ -66,11 +65,9 @@ const App: React.FC = () => {
           console.error('Error creating user:', error);
         }
       } else {
-        // Vérifier si l'utilisateur avec cet ID existe
         try {
-          const exists = await checkUserExists(storedUserId);
+          const exists = storedUserId ? await checkUserExists(storedUserId) : false;
           if (!exists) {
-            // Supprimer les informations du localStorage si l'utilisateur n'existe pas
             localStorage.removeItem('userId');
             localStorage.removeItem('password');
             console.log('User ID and password removed from localStorage');
@@ -82,10 +79,10 @@ const App: React.FC = () => {
         }
       }
     };
-
-    // Appeler la fonction initiale
+  
     initializeUser();
   }, []);
+  
 return (<EmotionProvider>
   <IonApp>
     <IonReactRouter>
