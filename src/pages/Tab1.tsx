@@ -58,7 +58,8 @@ const Tab1: React.FC = () => {
     routerLink.push(`/emotiondetail/?date=${encodeURIComponent(date)}`);
   };
 
-  const initializeMap = () => {
+  // Convertir initializeMap en fonction asynchrone
+  const initializeMap = async () => {
     if (mapRef.current) {
       mapRef.current.remove(); // Supprime l'ancienne instance de carte si elle existe
     }
@@ -118,14 +119,15 @@ const Tab1: React.FC = () => {
   });
 
   useEffect(() => {
-    if (coordinates) {
-      initializeMap();
-    }
-  }, [coordinates]);
+    const initMap = async () => {
+      if (coordinates) {
+        await initializeMap(); // Attends que la carte soit initialisée
+        addMarkersToMap(); // Ajoute les marqueurs après l'initialisation de la carte
+      }
+    };
 
-  useEffect(() => {
-    addMarkersToMap();
-  }, [emotions]);
+    initMap();
+  }, [coordinates, emotions]); // Exécute à chaque fois que `coordinates` ou `emotions` changent
 
   return (
     <IonPage>

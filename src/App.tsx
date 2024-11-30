@@ -54,7 +54,7 @@ const App: React.FC = () => {
       const storedPassword = localStorage.getItem('password');
 
       // Si l'ID n'est pas dans le localStorage, créer un nouvel utilisateur
-      if (!storedUserId) {
+      if (!storedUserId && !storedPassword) {
         try {
           const { id, password } = await createUser();
           if (id) {
