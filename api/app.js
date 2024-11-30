@@ -7,7 +7,7 @@ const Emotion = require('./models/Emotion');
 const { Op, fn, col, literal, Sequelize } = require('sequelize');
 const app = express();
 
-const allowedOrigins = ['https://launch.feelmap-app.com', 'http://localhost:5173']; // Liste des origines autorisées
+const allowedOrigins = ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://localhost', 'http://localhost']; // Liste des origines autorisées
 // Configurer CORS pour permettre les requêtes depuis 'http://localhost:3000'
 // Gérer manuellement les requêtes OPTIONS pour renvoyer un 200
 app.options('*', (req, res) => {
@@ -23,7 +23,7 @@ app.options('*', (req, res) => {
 
 // Middleware CORS sans inclure OPTIONS
 app.use(cors({
-  origin: ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://www.launch.feelmap-app.com', 'launch.feelmap-app.com'], // Domaines autorisés
+  origin: ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://www.launch.feelmap-app.com', 'launch.feelmap-app.com', 'https://localhost', 'http://localhost'], // Domaines autorisés
   methods: ['GET', 'POST', 'DELETE', 'PUT'], // Sans OPTIONS
   credentials: true, // Autoriser les cookies/headers d'autorisation
 }));
