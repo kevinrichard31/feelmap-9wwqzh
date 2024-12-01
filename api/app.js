@@ -7,7 +7,7 @@ const Emotion = require('./models/Emotion');
 const { Op, fn, col, literal, Sequelize } = require('sequelize');
 const app = express();
 
-const allowedOrigins = ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://localhost', 'http://localhost']; // Liste des origines autorisées
+const allowedOrigins = ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://localhost', 'http://localhost', 'capacitor://localhost']; // Liste des origines autorisées
 // Configurer CORS pour permettre les requêtes depuis 'http://localhost:3000'
 // Gérer manuellement les requêtes OPTIONS pour renvoyer un 200
 app.options('*', (req, res) => {
@@ -23,7 +23,7 @@ app.options('*', (req, res) => {
 
 // Middleware CORS sans inclure OPTIONS
 app.use(cors({
-  origin: ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://www.launch.feelmap-app.com', 'launch.feelmap-app.com', 'https://localhost', 'http://localhost'], // Domaines autorisés
+  origin: ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://www.launch.feelmap-app.com', 'launch.feelmap-app.com', 'https://localhost', 'http://localhost', 'capacitor://localhost'], // Domaines autorisés
   methods: ['GET', 'POST', 'DELETE', 'PUT'], // Sans OPTIONS
   credentials: true, // Autoriser les cookies/headers d'autorisation
 }));
@@ -223,23 +223,25 @@ app.post('/emotions', async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   });
-  
   app.get('/emotions', async (req, res) => {
     try {
       const { userId, month, year } = req.query;
+      console.log("🌱 - app.get - year:", year);
+      console.log("🌱 - app.get - month:", month);
+      console.log("🌱 - app.get - userId:", userId);
+  
       if (!userId || !month || !year) {
         return res.status(400).json({ error: 'Missing required query parameters' });
       }
   
-      const currentDate = new Date();
-      // Calculer les dates de début et de fin du mois
-      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      // Définir la date de fin du mois (dernier jour du mois à 23:59:59)
-      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      // Calculer les dates de début et de fin du mois spécifié
+      const startDate = new Date(year, month - 1, 1); // Mois indexé à 0
+      const endDate = new Date(year, month, 0); // Dernier jour du mois spécifié
       endDate.setHours(23, 59, 59, 999);
-
+  
       console.log("🌱 - app.get - startDate:", startDate);
       console.log("🌱 - app.get - endDate:", endDate);
+  
       // Récupérer toutes les émotions du mois spécifié
       const emotions = await Emotion.findAll({
         where: {
