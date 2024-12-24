@@ -33,12 +33,12 @@ app.use(cors({
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
+
   // Vérifie si l'origine de la requête est dans la liste des origines autorisées
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
   }
-  
+
   res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -107,11 +107,11 @@ app.delete('/users/delete', async (req, res) => {
 // Route pour vérifier si un utilisateur existe
 app.get('/users/:id', async (req, res) => {
   const { id } = req.params;
-  
+
   try {
     // Vérifier si l'utilisateur avec cet ID existe
     const user = await User.findByPk(id);
-    
+
     if (user) {
       // Si l'utilisateur existe, retourner un objet avec l'existence
       res.json({ exists: true });
@@ -126,17 +126,17 @@ app.get('/users/:id', async (req, res) => {
 
 app.post('/verify-password', async (req, res) => {
   const { password } = req.body;
-  
+
   if (!password) {
     return res.status(400).json({ error: 'Password is required' });
   }
 
   try {
     // Trouver l'utilisateur avec le mot de passe fourni
-    const user = await User.findOne({ 
-      where: { 
-        password 
-      } 
+    const user = await User.findOne({
+      where: {
+        password
+      }
     });
 
     if (user) {
@@ -156,17 +156,17 @@ app.post('/verify-password', async (req, res) => {
 app.get('/emotions/all', async (req, res) => {
   try {
     const { id, password } = req.query;
-    
+
     if (!id || !password) {
       return res.status(400).json({ error: 'Missing required query parameters: id and password' });
     }
 
     // Vérifier si l'utilisateur avec cet id et password existe
-    const user = await User.findOne({ 
-      where: { 
-        id, 
-        password 
-      } 
+    const user = await User.findOne({
+      where: {
+        id,
+        password
+      }
     });
 
     if (!user) {
@@ -200,84 +200,87 @@ app.get('/emotions/all', async (req, res) => {
 // Route pour créer une émotion
 // Route pour créer une émotion
 app.post('/emotions', async (req, res) => {
-    try {
-      const { userId, latitude, longitude, emotionName, description } = req.body;
-  
-      console.log(req.body.userId)
-      // Vérifier si l'utilisateur existe
-      const userExists = await User.findByPk(userId);
-      if (!userExists) {
-        return res.status(400).json({ error: 'User not found' });
-      }
-  
-      // Créer l'émotion
-      const emotion = await Emotion.create({
+  try {
+    const { userId, latitude, longitude, emotionName, description, city, amenity, type } = req.body;
+
+    console.log(req.body.userId)
+    // Vérifier si l'utilisateur existe
+    const userExists = await User.findByPk(userId);
+    if (!userExists) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
+    // Créer l'émotion
+    const emotion = await Emotion.create({
+      userId,
+      latitude,
+      longitude,
+      emotionName,
+      description,
+      city,
+      amenity,
+      type
+    });
+    res.json(emotion);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+app.get('/emotions', async (req, res) => {
+  try {
+    const { userId, month, year } = req.query;
+    console.log("🌱 - app.get - year:", year);
+    console.log("🌱 - app.get - month:", month);
+    console.log("🌱 - app.get - userId:", userId);
+
+    if (!userId || !month || !year) {
+      return res.status(400).json({ error: 'Missing required query parameters' });
+    }
+
+    // Calculer les dates de début et de fin du mois spécifié
+    const startDate = new Date(year, month - 1, 1); // Mois indexé à 0
+    const endDate = new Date(year, month, 0); // Dernier jour du mois spécifié
+    endDate.setHours(23, 59, 59, 999);
+
+    console.log("🌱 - app.get - startDate:", startDate);
+    console.log("🌱 - app.get - endDate:", endDate);
+
+    // Récupérer toutes les émotions du mois spécifié
+    const emotions = await Emotion.findAll({
+      where: {
         userId,
-        latitude,
-        longitude,
-        emotionName,
-        description,
-      });
-      res.json(emotion);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-  app.get('/emotions', async (req, res) => {
-    try {
-      const { userId, month, year } = req.query;
-      console.log("🌱 - app.get - year:", year);
-      console.log("🌱 - app.get - month:", month);
-      console.log("🌱 - app.get - userId:", userId);
-  
-      if (!userId || !month || !year) {
-        return res.status(400).json({ error: 'Missing required query parameters' });
-      }
-  
-      // Calculer les dates de début et de fin du mois spécifié
-      const startDate = new Date(year, month - 1, 1); // Mois indexé à 0
-      const endDate = new Date(year, month, 0); // Dernier jour du mois spécifié
-      endDate.setHours(23, 59, 59, 999);
-  
-      console.log("🌱 - app.get - startDate:", startDate);
-      console.log("🌱 - app.get - endDate:", endDate);
-  
-      // Récupérer toutes les émotions du mois spécifié
-      const emotions = await Emotion.findAll({
-        where: {
-          userId,
-          emotionDate: {
-            [Op.between]: [startDate, endDate]
-          }
-        },
-        order: [['emotionDate', 'DESC']], // Trier par date décroissante pour avoir les plus récentes en premier
-        raw: true
-      });
-  
-      // Filtrer pour ne garder que la dernière émotion de chaque jour
-      const latestEmotionsPerDay = [];
-      const emotionMap = new Map(); // Utiliser une Map pour stocker la dernière émotion par jour
-  
-      emotions.forEach(emotion => {
-        const emotionDay = new Date(emotion.emotionDate).toISOString().split('T')[0]; // Obtenir la date sans l'heure
-        if (!emotionMap.has(emotionDay)) {
-          emotionMap.set(emotionDay, emotion); // Si la date n'existe pas encore dans la map, on ajoute l'émotion
+        emotionDate: {
+          [Op.between]: [startDate, endDate]
         }
-      });
-  
-      // Transformer la Map en tableau
-      emotionMap.forEach((emotion) => {
-        latestEmotionsPerDay.push(emotion);
-      });
-  
-      // Retourner les dernières émotions pour chaque jour
-      res.json(latestEmotionsPerDay);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-  
-  // Route pour récupérer toutes les émotions d'une journée pour un utilisateur
+      },
+      order: [['emotionDate', 'DESC']], // Trier par date décroissante pour avoir les plus récentes en premier
+      raw: true
+    });
+
+    // Filtrer pour ne garder que la dernière émotion de chaque jour
+    const latestEmotionsPerDay = [];
+    const emotionMap = new Map(); // Utiliser une Map pour stocker la dernière émotion par jour
+
+    emotions.forEach(emotion => {
+      const emotionDay = new Date(emotion.emotionDate).toISOString().split('T')[0]; // Obtenir la date sans l'heure
+      if (!emotionMap.has(emotionDay)) {
+        emotionMap.set(emotionDay, emotion); // Si la date n'existe pas encore dans la map, on ajoute l'émotion
+      }
+    });
+
+    // Transformer la Map en tableau
+    emotionMap.forEach((emotion) => {
+      latestEmotionsPerDay.push(emotion);
+    });
+
+    // Retourner les dernières émotions pour chaque jour
+    res.json(latestEmotionsPerDay);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Route pour récupérer toutes les émotions d'une journée pour un utilisateur
 app.get('/emotions/day', async (req, res) => {
   try {
     const { userId, date } = req.query;
@@ -308,16 +311,16 @@ app.get('/emotions/day', async (req, res) => {
     });
 
     console.log(emotions)
-    
+
     // Retourner les émotions trouvées
     res.json(emotions);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-    
+
 });
 
-  
+
 // Synchronisation des modèles avec la base de données
 sequelize.sync({ force: false, }).then(() => {
   app.listen(3055, () => {

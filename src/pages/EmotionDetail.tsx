@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, useIonViewWillEnter } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
 import { useLocation } from 'react-router-dom';
 import './Tab2.css';
 import { useEffect, useState } from 'react';
@@ -10,7 +10,6 @@ const EmotionDetail: React.FC = () => {
   function Search() {
     const { emotion, image, background, latitude, longitude } = useEmotion();
     const [emotionsList, setEmotionsList] = useState<any[]>([]);
-    const [locations, setLocations] = useState<{ [key: string]: string }>({});
     const [lastEmotion, setLastEmotion] = useState<any>(null);
     const location = useLocation(); // Utilisation de useLocation pour récupérer les params de la requête
 
@@ -36,13 +35,6 @@ const EmotionDetail: React.FC = () => {
             const sortedEmotions = [...fetchedEmotions].sort((a, b) => new Date(b.emotionDate).getTime() - new Date(a.emotionDate).getTime());
             setLastEmotion(sortedEmotions[0]);
           }
-
-          // Récupérer les noms des lieux pour chaque émotion (latitude/longitude)
-          fetchedEmotions.forEach((emotion: any) => {
-            if (emotion.latitude && emotion.longitude) {
-              fetchPlaceName(emotion.latitude, emotion.longitude, emotion.id);
-            }
-          });
         }
       }
     };
@@ -89,25 +81,6 @@ const EmotionDetail: React.FC = () => {
       return `${formattedTime}`;
     };
 
-    // Fonction pour faire un appel à l'API de géocodage inversé
-    const fetchPlaceName = async (lat: number, lng: number, emotionId: string) => {
-      try {
-        const response = await fetch(
-          `https://api-bdc.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
-        );
-        const data = await response.json();
-        const placeName = data?.city || 'Lieu inconnu';
-
-        // Stocker le nom du lieu dans l'état
-        setLocations((prevLocations) => ({
-          ...prevLocations,
-          [emotionId]: placeName,
-        }));
-      } catch (error) {
-        console.error('Erreur lors de la récupération du lieu:', error);
-      }
-    };
-
     return (
       <div>
         {date && (
@@ -121,7 +94,9 @@ const EmotionDetail: React.FC = () => {
             <div key={emotion.id} className="emotion-detail-container">
               <img src={getStaticImage(emotion.emotionName)} alt={emotion.emotionName} />
               <div className="content">
-                <p className="date">{formatDateWithTime(emotion.emotionDate)} à {locations[emotion.id] || 'Chargement...'}</p>
+                <p className="date">
+                {formatDateWithTime(emotion.emotionDate)} à {emotion.city || 'Lieu inconnu'}{emotion.amenity ? ', ' + emotion.amenity : ''}
+                </p>
                 <p className="description">{emotion.description}</p>
               </div>
             </div>

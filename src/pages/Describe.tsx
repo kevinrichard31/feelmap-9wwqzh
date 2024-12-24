@@ -7,7 +7,7 @@ import { useHistory } from 'react-router-dom';
 import './Describe.css';
 import { useEmotion } from '../contexts/EmotionContext';
 import { useEffect, useRef, useState } from 'react';
-import { createUser, saveEmotion } from '../utils/api';
+import { createUser, saveEmotion, getCityFromBDC, getAmenityFromNominatim } from '../utils/api';
 
 const Describe: React.FC = () => {
   const { emotion, image, background, latitude, longitude } = useEmotion();
@@ -46,7 +46,7 @@ const Describe: React.FC = () => {
   const handleSave = async () => {
     let userId = await asyncLocalStorage.getItem('userId');
     let userPassword = await asyncLocalStorage.getItem('password');
-
+  
     if (!userId) {
       const user = await createUser();
       if (!user || !user.id) {
@@ -57,32 +57,47 @@ const Describe: React.FC = () => {
       await asyncLocalStorage.setItem('userId', user.id);
       userId = user.id;
     }
-
+  
     setIsSaving(true);
     setError(null);
-
-    const emotionDetails = {
-      latitude: latitude ?? 0, // Garantir que latitude est un nombre
-      longitude: longitude ?? 0, // Garantir que longitude est un nombre
-      emotionName: emotion || '', // Chaîne vide si null/undefined
-      description: inputRef.current?.value || '', // Chaîne vide si non défini
-    };
-
-    const result = await saveEmotion(
-      userId || '', // Forcer une chaîne vide si null
-      userPassword || '', // Forcer une chaîne vide si null
-      emotionDetails
-    );
-
-    if (result) {
-      console.log('Emotion saved successfully:', result);
-      const emotionDate = new Date().toISOString().split('T')[0];
-      history.push(`/emotiondetail/?date=${encodeURIComponent(emotionDate)}`);
-    } else {
-      setError('Failed to save emotion');
+  
+    try {
+      // Récupérer la ville et l'amenity
+      const [city, { amenity, type }] = await Promise.all([
+        getCityFromBDC(latitude ?? 0, longitude ?? 0),  // Ville (fonction existante)
+        getAmenityFromNominatim(latitude ?? 0, longitude ?? 0),  // Amenity et Type
+      ]);
+  
+      const emotionDetails = {
+        latitude: latitude ?? 0, // Garantir que latitude est un nombre
+        longitude: longitude ?? 0, // Garantir que longitude est un nombre
+        emotionName: emotion || '', // Chaîne vide si null/undefined
+        description: inputRef.current?.value || '', // Chaîne vide si non défini
+        city, // Ville récupérée
+        amenity, // Amenity récupéré
+        type
+      };
+  
+      // Sauvegarder l'émotion
+      const result = await saveEmotion(
+        userId || '', // Forcer une chaîne vide si null
+        userPassword || '', // Forcer une chaîne vide si null
+        emotionDetails
+      );
+  
+      if (result) {
+        console.log('Emotion saved successfully:', result);
+        const emotionDate = new Date().toISOString().split('T')[0];
+        history.push(`/emotiondetail/?date=${encodeURIComponent(emotionDate)}`);
+      } else {
+        setError('Failed to save emotion');
+      }
+    } catch (err) {
+      console.error('Error saving emotion:', err);
+      setError('An error occurred while saving your emotion');
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsSaving(false);
   };
 
   return (

@@ -38,6 +38,18 @@ const Emotion = sequelize.define('Emotion', {
     allowNull: false,
     defaultValue: DataTypes.NOW,
   },
+  city: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  amenity: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  type: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  }
 }, {
   tableName: 'emotions',
   timestamps: false,
