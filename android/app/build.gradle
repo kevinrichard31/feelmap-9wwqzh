@@ -50,7 +50,6 @@ try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
-        id 'com.google.gms.google-services' version '4.4.2' apply false
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
