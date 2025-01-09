@@ -3,10 +3,19 @@ import { useHistory } from 'react-router-dom';  // Importation de useHistory pou
 import './Select.css';
 import { emotions } from '../data/emotions';
 import { useEmotion } from '../contexts/EmotionContext';
+import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
+import { useEffect } from 'react';  // Importation de useEffect
 
 const Select: React.FC = () => {
   const { setEmotion } = useEmotion();
   const routerLink = useIonRouter(); // Utilisation de useIonRouter pour la navigation
+
+  useEffect(() => {
+    FirebaseAnalytics.setScreenName({
+      screenName: 'select',  // Nom de l'écran
+      nameOverride: 'SelectEmotionView',  // Facultatif : remplace le nom de la classe de l'écran
+    });
+  }, []);
 
   const handleClick = (emotion: string, image: string, background: string) => {
     if (navigator.geolocation) {
@@ -34,24 +43,21 @@ const Select: React.FC = () => {
   return (
     <IonPage>
       <IonContent fullscreen>
-      <div className="emotion-selector">
-        <div className="title">
-          Comment te sens-tu ?
-        </div>
-        <div className="wrap-emoji">
-          {emotions.map(({ name, image, imageStatic, background }) => (
-            <div key={name} className='container-emoji-single' onClick={() => handleClick(name, imageStatic, background)}>
-              <div className='background-emoji'>
-                <img src={image} alt={name} className="emoji-size" data-emotion={name} />
+        <div className="emotion-selector">
+          <div className="title">
+            Comment te sens-tu ?
+          </div>
+          <div className="wrap-emoji">
+            {emotions.map(({ name, image, imageStatic, background }) => (
+              <div key={name} className='container-emoji-single' onClick={() => handleClick(name, imageStatic, background)}>
+                <div className='background-emoji'>
+                  <img src={image} alt={name} className="emoji-size" data-emotion={name} />
+                </div>
+                <div style={{marginTop: '3px'}}>{name}</div>
               </div>
-              <div style={{marginTop: '3px'}}>{name}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-
-        {/* <div className='button-next' onClick={() => history.push('/tab1')} style={{marginTop: '30px'}}>Passer</div> */}
-
       </IonContent>
     </IonPage>
   );
