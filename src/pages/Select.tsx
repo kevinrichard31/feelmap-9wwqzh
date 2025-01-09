@@ -13,7 +13,7 @@ const Select: React.FC = () => {
   useEffect(() => {
     FirebaseAnalytics.setScreenName({
       screenName: 'select',  // Nom de l'écran
-      nameOverride: 'SelectEmotionView',  // Facultatif : remplace le nom de la classe de l'écran
+      nameOverride: 'SelectEmotion',  // Facultatif : remplace le nom de la classe de l'écran
     });
   }, []);
 
@@ -45,7 +45,7 @@ const Select: React.FC = () => {
       <IonContent fullscreen>
         <div className="emotion-selector">
           <div className="title">
-            Comment te sens-tu ?
+            Comment te sens-tu ? coco
           </div>
           <div className="wrap-emoji">
             {emotions.map(({ name, image, imageStatic, background }) => (
