@@ -215,8 +215,8 @@ export const getAmenityFromNominatim = async (latitude: number, longitude: numbe
     const data = await response.json();
 
     // Récupérer l'amenity et le type
-    const amenity = data.address?.amenity || ''; // Si amenity n'est pas défini, renvoie une chaîne vide
-    const type = data.type || ''; // Si type n'est pas défini, renvoie une chaîne vide
+    const amenity = data.address?.amenity || ''; // Nom du magasin ou de l'endroit
+    const type = data.type || ''; // type, fast_food, restaurant...
 
     return { amenity, type }; // Retourne un objet avec les deux valeurs
   } catch (error) {

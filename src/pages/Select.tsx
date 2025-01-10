@@ -1,10 +1,9 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonRouterLink, useIonRouter } from '@ionic/react';
-import { useHistory } from 'react-router-dom';  // Importation de useHistory pour la navigation
-import './Select.css';
+import { useEffect } from 'react';  // Importation de useEffect
 import { emotions } from '../data/emotions';
 import { useEmotion } from '../contexts/EmotionContext';
 import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
-import { useEffect } from 'react';  // Importation de useEffect
+import './Select.css';
 
 const Select: React.FC = () => {
   const { setEmotion } = useEmotion();
@@ -18,26 +17,10 @@ const Select: React.FC = () => {
   }, []);
 
   const handleClick = (emotion: string, image: string, background: string) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          console.log(position.coords);
-          setEmotion(emotion, image, background, latitude, longitude);
-          routerLink.push('/describe');  // Utilisation de routerLink.push pour la navigation
-        },
-        (error) => {
-          console.error('Error fetching location', error);
-          // Si la géolocalisation échoue, continuer sans les coordonnées
-          setEmotion(emotion, image, background, 0, 0);
-          routerLink.push('/describe');  // Utilisation de routerLink.push pour la navigation
-        }
-      );
-    } else {
-      // Si le navigateur ne supporte pas la géolocalisation, continuer sans
-      setEmotion(emotion, image, background, 0, 0);
-      routerLink.push('/describe');  // Utilisation de routerLink.push pour la navigation
-    }
+    console.log('coucou');
+    // On envoie uniquement l'émotion, l'image et le background
+    setEmotion(emotion, image, background, 0, 0);  // Latitude et longitude par défaut à 0
+    routerLink.push('/describe');  // Navigation vers la page Describe
   };
 
   return (
@@ -45,7 +28,7 @@ const Select: React.FC = () => {
       <IonContent fullscreen>
         <div className="emotion-selector">
           <div className="title">
-            Comment te sens-tu ? coco
+            Comment te sens-tu ?
           </div>
           <div className="wrap-emoji">
             {emotions.map(({ name, image, imageStatic, background }) => (
@@ -53,7 +36,7 @@ const Select: React.FC = () => {
                 <div className='background-emoji'>
                   <img src={image} alt={name} className="emoji-size" data-emotion={name} />
                 </div>
-                <div style={{marginTop: '3px'}}>{name}</div>
+                <div style={{ marginTop: '3px' }}>{name}</div>
               </div>
             ))}
           </div>

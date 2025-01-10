@@ -1,20 +1,16 @@
-import { 
-  IonContent, 
-  IonPage, 
-  IonButton 
-} from '@ionic/react';
-import { useHistory } from 'react-router-dom'; 
-import './Describe.css';
-import { useEmotion } from '../contexts/EmotionContext';
-import { useEffect, useRef, useState } from 'react';
+import { IonContent, IonPage, IonButton } from '@ionic/react';
+import { useEffect, useState, useRef } from 'react'; // Importation de useEffect et useState
+import { useIonRouter } from '@ionic/react';  // Importation de useIonRouter pour la navigation
+import { useEmotion } from '../contexts/EmotionContext'; // Accès au contexte pour récupérer les émotions
 import { createUser, saveEmotion, getCityFromBDC, getAmenityFromNominatim } from '../utils/api';
+import './Describe.css';
 
 const Describe: React.FC = () => {
-  const { emotion, image, background, latitude, longitude } = useEmotion();
+  const { emotion, image, background, latitude, longitude, setEmotion } = useEmotion();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const history = useHistory();
+  const router = useIonRouter();  // Utilisation de useIonRouter pour la navigation
 
   useEffect(() => {
     const ionContentElement = document.querySelector('ion-content');
@@ -23,8 +19,20 @@ const Describe: React.FC = () => {
       ionContentElement.style.setProperty('--ion-background-color', background);
     }
 
-    if (inputRef.current) {
-      inputRef.current.focus();
+    // Récupérer la géolocalisation à l'arrivée sur la page
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setEmotion(emotion, image, background, latitude, longitude); // Mise à jour du contexte avec la latitude et la longitude
+        },
+        (error) => {
+          console.error('Error fetching location', error);
+          setError('Failed to get location');
+        }
+      );
+    } else {
+      setError('Geolocation not supported');
     }
 
     return () => {
@@ -32,7 +40,7 @@ const Describe: React.FC = () => {
         ionContentElement.style.removeProperty('--ion-background-color');
       }
     };
-  }, [background]);
+  }, [background, emotion, image, setEmotion]);
 
   const asyncLocalStorage = {
     getItem: async (key: string): Promise<string | null> => {
@@ -64,31 +72,31 @@ const Describe: React.FC = () => {
     try {
       // Récupérer la ville et l'amenity
       const [city, { amenity, type }] = await Promise.all([
-        getCityFromBDC(latitude ?? 0, longitude ?? 0),  // Ville (fonction existante)
-        getAmenityFromNominatim(latitude ?? 0, longitude ?? 0),  // Amenity et Type
+        getCityFromBDC(latitude ?? 0, longitude ?? 0),  // Ville
+        getAmenityFromNominatim(latitude ?? 0, longitude ?? 0),  // Amenity
       ]);
   
       const emotionDetails = {
-        latitude: latitude ?? 0, // Garantir que latitude est un nombre
-        longitude: longitude ?? 0, // Garantir que longitude est un nombre
-        emotionName: emotion || '', // Chaîne vide si null/undefined
-        description: inputRef.current?.value || '', // Chaîne vide si non défini
-        city, // Ville récupérée
-        amenity, // Amenity récupéré
+        latitude: latitude ?? 0,
+        longitude: longitude ?? 0,
+        emotionName: emotion || '',
+        description: inputRef.current?.value || '',
+        city,
+        amenity,
         type
       };
   
       // Sauvegarder l'émotion
       const result = await saveEmotion(
-        userId || '', // Forcer une chaîne vide si null
-        userPassword || '', // Forcer une chaîne vide si null
+        userId || '',
+        userPassword || '',
         emotionDetails
       );
   
       if (result) {
         console.log('Emotion saved successfully:', result);
         const emotionDate = new Date().toISOString().split('T')[0];
-        history.push(`/emotiondetail/?date=${encodeURIComponent(emotionDate)}`);
+        router.push(`/emotiondetail/?date=${encodeURIComponent(emotionDate)}`);  // Utilisation de router.push pour naviguer
       } else {
         setError('Failed to save emotion');
       }
@@ -106,17 +114,8 @@ const Describe: React.FC = () => {
         <img src={image} className="emoji-size" alt="Emotion" />
         <div className="container-input">
           <div className="describe-title">Décris ce qui se passe :</div>
-          <textarea 
-            ref={inputRef} 
-            className="inputTextDescribe" 
-            placeholder="Décris ton émotion" 
-          />
-          <IonButton 
-            className="button-next" 
-            onClick={handleSave} 
-            disabled={isSaving}
-            expand="full"
-          >
+          <textarea ref={inputRef} className="inputTextDescribe" placeholder="Décris ton émotion" />
+          <IonButton className="button-next" onClick={handleSave} disabled={isSaving} expand="full">
             {isSaving ? 'Enregistrement...' : 'Enregistrer'}
           </IonButton>
           {error && <div className="error-message">{error}</div>}
