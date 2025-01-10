@@ -2,8 +2,12 @@
 const express = require('express');
 const cors = require('cors'); // Importer le middleware CORS
 const sequelize = require('./config/database');
-const User = require('./models/User');
-const Emotion = require('./models/Emotion');
+const User = require('./models/User'); // Modèle User
+const Emotion = require('./models/Emotion'); // Modèle Emotion
+const Traits = require('./models/Traits'); // Modèle Traits
+const Lang = require('./models/Lang'); // Modèle Lang
+const EmotionHasTraits = require('./models/EmotionHasTraits'); // Modèle EmotionHasTraits
+const TraitsHasLang = require('./models/TraitsHasLang'); // Modèle TraitsHasLang
 const { Op, fn, col, literal, Sequelize } = require('sequelize');
 const app = express();
 

@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Lang = require('./Lang');
 
 // Function to generate a random 10-character password
 const generatePassword = () => {
@@ -17,14 +18,31 @@ const User = sequelize.define('User', {
     autoIncrement: true,
     primaryKey: true,
   },
-  password: {
-    type: DataTypes.STRING(10), // Define the password field with 10 characters
-    allowNull: false,
-    defaultValue: () => generatePassword(), // Set default value using the generatePassword function
+  lang_id: {
+    type: DataTypes.BIGINT,
+    references: {
+      model: Lang,
+      key: 'id',
+    }
   },
+  password: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+    defaultValue: () => generatePassword(),
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  language: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  }
 }, {
   tableName: 'users',
-  timestamps: false, // Disable automatic timestamps
+  timestamps: false,
 });
+
+User.belongsTo(Lang, { foreignKey: 'lang_id' });
 
 module.exports = User;
