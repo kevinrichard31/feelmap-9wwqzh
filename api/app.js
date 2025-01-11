@@ -72,12 +72,46 @@ app.get('/test', (req, res) => {
 // Route pour créer un nouvel utilisateur
 app.post('/users', async (req, res) => {
   try {
-    const newUser = await User.create({});
-    res.json(newUser)
+    let langCode = req.body.lang_id;  // Récupère le code de langue envoyé par le client
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Récupère l'adresse IP
+    console.log(langCode)
+    // Convertir le code de langue envoyé en minuscule pour éviter les problèmes de casse
+    langCode = langCode.toLowerCase();
+
+    // Recherche dans la table Lang si un code exact existe (en minuscule)
+    let lang = await Lang.findOne({
+      where: {
+        code: langCode,  // Cherche un code de langue exact en minuscule
+      }
+    });
+
+    // Si la langue exacte n'existe pas, tente de trouver une correspondance la plus proche
+    if (!lang) {
+      // Option 1: On peut simplement utiliser les deux premiers caractères du code (par ex., fr pour fr-CA)
+      const langShortCode = langCode.split('-')[0];  // "fr" pour "fr-CA"
+      lang = await Lang.findOne({
+        where: {
+          code: langShortCode,  // Cherche un code de langue plus court comme "fr" (en minuscule)
+        }
+      });
+    }
+
+    if (!lang) {
+      return res.status(404).json({ error: 'Language not found' });  // Si aucune langue n'a été trouvée
+    }
+
+    // Crée un nouvel utilisateur avec l'ID de la langue trouvée
+    const newUser = await User.create({
+      ip_address: ipAddress,
+      lang_id: lang.id,  // Utilise l'ID de la langue trouvée
+    });
+
+    res.json(newUser);  // Retourne le nouvel utilisateur
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Route pour supprimer toutes les données d'un utilisateur en passant son mot de passe
 app.delete('/users/delete', async (req, res) => {
@@ -326,7 +360,10 @@ app.get('/emotions/day', async (req, res) => {
 
 
 // Synchronisation des modèles avec la base de données
-sequelize.sync({ force: false, }).then(() => {
+sequelize.sync({ 
+  // force: true,
+  alter: true
+ }).then(() => {
   app.listen(3055, () => {
     console.log('Server is running on port 3055');
   });

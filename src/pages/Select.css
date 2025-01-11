@@ -1,5 +1,5 @@
 .emoji-size {
-    width: 60px;
+    width: 45px;
 }
 
 .background-emoji {
@@ -19,15 +19,54 @@
 }
 
 .emotion-selector .title {
-    color: #F17762;
-    font-weight: bold;
+    color: black;
     font-size: 20px;
     text-align: center;
     padding: 15px;
+    font-family: "Agrandir Regular";
+    line-height: 28px;
+    margin-top: 20px;
+}
+
+.emotion-selector .bold {
+    color: black;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    padding: 15px;
+    font-family: "Agrandir Regular";
 }
 
 .container-emoji-single {
     display: flex;
     flex-direction: column;
+    position: relative;
     align-items: center;
+    justify-content: center;
+}
+
+.choose-emotion {
+    font-size: 14px;
+    text-align: center;
+    padding-top:10px;
+    padding-bottom: 5px;
+}
+
+* {
+    font-family: "Agrandir Regular";
+}
+
+.box {
+    max-width: 90px;
+}
+
+.container-content {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.emotion-name {
+    font-size: 12px;
 }

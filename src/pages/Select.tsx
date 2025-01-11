@@ -28,15 +28,29 @@ const Select: React.FC = () => {
       <IonContent fullscreen>
         <div className="emotion-selector">
           <div className="title">
-            Comment te sens-tu ?
+            Comment te sens-tu <br /> <span className='bold'>maintenant ? 🦦</span>
+          </div>
+
+          <div className="choose-emotion">
+            Choose your mood <img src="images/arrow-down.svg" alt="" />
           </div>
           <div className="wrap-emoji">
+
+
+
             {emotions.map(({ name, image, imageStatic, background }) => (
+
               <div key={name} className='container-emoji-single' onClick={() => handleClick(name, imageStatic, background)}>
-                <div className='background-emoji'>
+                <svg className='box' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="auto" style={{ filter: 'drop-shadow(0 1px 1px hsl(0deg 0% 0% / 0.075)) drop-shadow(0 2px 2px hsl(0deg 0% 0% / 0.075)) drop-shadow(0 4px 4px hsl(0deg 0% 0% / 0.075)) drop-shadow(0 8px 8px hsl(0deg 0% 0% / 0.075)) drop-shadow(0 16px 16px hsl(0deg 0% 0% / 0.075))' }}>
+                  <path d="M 0, 100 C 0, 12 12, 0 100, 0 S 200, 12 200, 100 188, 200 100, 200 0, 188 0, 100" fill="#EBF1DB"></path>
+                </svg>
+                <div className='container-content'>
+
                   <img src={image} alt={name} className="emoji-size" data-emotion={name} />
+
+                  <div style={{ marginTop: '3px' }} className='emotion-name'>{name}</div>
                 </div>
-                <div style={{ marginTop: '3px' }}>{name}</div>
+
               </div>
             ))}
           </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
@@ -19,6 +19,7 @@ import Tab1 from './pages/Tab1';
 import Tab2 from './pages/Tab2';
 import Tab3 from './pages/Tab3';
 import './theme/variables.css'; // Ensure you have your theme variables
+import './theme/global.css';
 
 import { EmotionProvider } from './contexts/EmotionContext';
 
@@ -44,47 +45,58 @@ import Select from './pages/Select';
 import Describe from './pages/Describe';
 import { checkUserExists, createUser } from './utils/api';
 import EmotionDetail from './pages/EmotionDetail';
+import { Device } from '@capacitor/device';
 
 setupIonicReact();
 
 const App: React.FC = () => {
-  useEffect(() => {
-    const initializeUser = async () => {
-      const storedUserId = localStorage.getItem('userId');
-      const storedPassword = localStorage.getItem('password');
+  const [isInitialized, setIsInitialized] = useState(false);
 
-      // Si l'ID n'est pas dans le localStorage, créer un nouvel utilisateur
-      if (!storedUserId) {
-        try {
-          const { id, password } = await createUser();
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        // 1. D'abord, récupérer la langue
+        const { value: userLocale } = await Device.getLanguageCode();
+        console.log("🌱 - Device.getLanguageCode - locale:", userLocale);
+
+        // 2. Vérifier l'utilisateur existant
+        const storedUserId = localStorage.getItem('userId');
+        const storedPassword = localStorage.getItem('password');
+
+        if (!storedUserId) {
+          // 3. Créer un nouvel utilisateur si nécessaire
+          const { id, password } = await createUser(userLocale);
           if (id) {
-            localStorage.setItem('userId', id); // Stocke l'ID dans localStorage
+            localStorage.setItem('userId', id);
             localStorage.setItem('password', password);
             console.log('User ID stored:', id);
           }
-        } catch (error) {
-          console.error('Error creating user:', error);
-        }
-      } else {
-        // Vérifier si l'utilisateur avec cet ID existe
-        try {
+        } else {
+          // 4. Vérifier si l'utilisateur existe dans la base de données
           const exists = await checkUserExists(storedUserId);
           if (!exists) {
-            // Supprimer les informations du localStorage si l'utilisateur n'existe pas
             localStorage.removeItem('userId');
             localStorage.removeItem('password');
             console.log('User ID and password removed from localStorage');
+            // Recréer un nouvel utilisateur
+            const { id, password } = await createUser(userLocale);
+            if (id) {
+              localStorage.setItem('userId', id);
+              localStorage.setItem('password', password);
+              console.log('New user ID stored:', id);
+            }
           } else {
             console.log('User ID exists in the database:', storedUserId);
           }
-        } catch (error) {
-          console.error('Error checking user existence:', error);
         }
+      } catch (error) {
+        console.error('Initialization error:', error);
+      } finally {
+        setIsInitialized(true);
       }
     };
 
-    // Appeler la fonction initiale
-    initializeUser();
+    initialize();
   }, []);
 return (<EmotionProvider>
   <IonApp>
@@ -124,7 +136,7 @@ return (<EmotionProvider>
           </IonTabButton>
           <IonTabButton tab="tab3" href="/tab3">
             <IonIcon aria-hidden="true" icon={settings} />
-            <IonLabel>Paramètre</IonLabel>
+            <IonLabel>Paramètres</IonLabel>
           </IonTabButton>
           <IonTabButton disabled>
           </IonTabButton>

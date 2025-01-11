@@ -55,16 +55,7 @@ const Describe: React.FC = () => {
     let userId = await asyncLocalStorage.getItem('userId');
     let userPassword = await asyncLocalStorage.getItem('password');
   
-    if (!userId) {
-      const user = await createUser();
-      if (!user || !user.id) {
-        setError('Failed to create user');
-        return;
-      }
-      console.log(`${user.id} created`);
-      await asyncLocalStorage.setItem('userId', user.id);
-      userId = user.id;
-    }
+
   
     setIsSaving(true);
     setError(null);

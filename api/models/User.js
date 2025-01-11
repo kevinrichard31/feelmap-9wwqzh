@@ -14,7 +14,7 @@ const generatePassword = () => {
 
 const User = sequelize.define('User', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     autoIncrement: true,
     primaryKey: true,
   },
@@ -23,7 +23,7 @@ const User = sequelize.define('User', {
     references: {
       model: Lang,
       key: 'id',
-    }
+    },
   },
   password: {
     type: DataTypes.STRING(10),
@@ -32,15 +32,20 @@ const User = sequelize.define('User', {
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: false,
-  },
-  language: {
-    type: DataTypes.STRING,
     allowNull: true,
-  }
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: DataTypes.NOW, // Définit automatiquement la date actuelle
+  },
+  ip_address: {
+    type: DataTypes.STRING,
+    allowNull: true, // Permet de laisser le champ vide si l'IP n'est pas disponible
+  },
 }, {
   tableName: 'users',
-  timestamps: false,
+  timestamps: false, // Désactive les colonnes par défaut `createdAt` et `updatedAt`
 });
 
 User.belongsTo(Lang, { foreignKey: 'lang_id' });

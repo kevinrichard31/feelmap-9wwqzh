@@ -40,7 +40,7 @@ export const saveEmotion = async (
 };
 
 
-export const createUser = async () => {
+export const createUser = async (locale: string | null) => {
   try {
     const response = await fetch(API_URL + '/users', {
       method: 'POST',
@@ -49,7 +49,7 @@ export const createUser = async () => {
       },
       credentials: 'include',
       body: JSON.stringify({
-        'hello': 'hello'
+        'lang_id': locale
       })
     });
 
