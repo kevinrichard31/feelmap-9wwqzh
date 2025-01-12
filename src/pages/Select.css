@@ -70,3 +70,19 @@
 .emotion-name {
     font-size: 12px;
 }
+
+.background-content {
+    --background: #fff!important;
+}
+
+
+  .container-emoji-single.active {
+    transform: scale(1.2); /* Agrandissement lors du toucher */
+    transition: transform 0.3s ease;
+  }
+  
+  .container-emoji-single.active2 {
+    transform: scale(1.2); /* Agrandissement lors du toucher */
+    transition: transform 0.1s ease;
+  }
+  

@@ -2,6 +2,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const User = require('./User');
+const PlaceType = require('./PlaceType');  // Importer le modèle PlaceType
 
 const Emotion = sequelize.define('Emotion', {
   id: {
@@ -49,12 +50,26 @@ const Emotion = sequelize.define('Emotion', {
   type: {
     type: DataTypes.STRING,
     allowNull: true,
-  }
+  },
+  placeTypeId: {  // Nouvelle clé étrangère pour lier à PlaceType
+    type: DataTypes.INTEGER,
+    references: {
+      model: PlaceType,
+      key: 'id',
+    },
+    allowNull: true,  // Peut être nul si l'émotion n'est pas associée à un type de lieu
+  },
+  placeTypeOther: {  // Champ supplémentaire pour un type de lieu personnalisé
+    type: DataTypes.STRING,
+    allowNull: true,  // Peut être nul si l'utilisateur ne remplit pas ce champ
+  },
 }, {
   tableName: 'emotions',
   timestamps: false,
 });
 
+// Relations
 Emotion.belongsTo(User, { foreignKey: 'userId' });
+Emotion.belongsTo(PlaceType, { foreignKey: 'placeTypeId' });  // Relation avec PlaceType
 
 module.exports = Emotion;

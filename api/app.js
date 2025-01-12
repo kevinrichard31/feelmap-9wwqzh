@@ -333,7 +333,6 @@ app.get('/emotions/day', async (req, res) => {
     const endDate = new Date(date);
     endDate.setHours(23, 59, 59, 999); // Fin de la journée à 23:59:59
 
-    console.log("DAAAAAAAAAAAAAAAAAAAAAAA********")
     console.log(startDate)
     console.log(endDate)
     // Récupérer toutes les émotions de la journée spécifiée
