@@ -14,7 +14,7 @@ import {
   IonFabButton
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { ellipse, square, location, calendarNumber, settingsOutline, settings } from 'ionicons/icons';
+import { ellipse, square, location, calendarNumber, settingsOutline, settings, people, personAdd, person, barChart, pieChart, analytics } from 'ionicons/icons';
 import Tab1 from './pages/Tab1';
 import Tab2 from './pages/Tab2';
 import Tab3 from './pages/Tab3';
@@ -128,15 +128,21 @@ return (<EmotionProvider>
         <IonTabBar slot="bottom">
           <IonTabButton tab="tab1" href="/tab1">
             <IonIcon aria-hidden="true" icon={location} />
-            <IonLabel>Carte</IonLabel>
           </IonTabButton>
           <IonTabButton tab="tab2" href="/tab2">
             <IonIcon aria-hidden="true" icon={calendarNumber} />
-            <IonLabel>Historique</IonLabel>
+          </IonTabButton>
+          {/* <IonTabButton tab="tab2" href="/tab2">
+            <IonIcon aria-hidden="true" icon={people} />
+          </IonTabButton> */}
+
+          <IonTabButton tab="tab2" href="/tab2">
+            <IonIcon aria-hidden="true" icon={analytics} />
           </IonTabButton>
           <IonTabButton tab="tab3" href="/tab3">
             <IonIcon aria-hidden="true" icon={settings} />
-            <IonLabel>Paramètres</IonLabel>
+          </IonTabButton>
+          <IonTabButton disabled>
           </IonTabButton>
           <IonTabButton disabled>
           </IonTabButton>
