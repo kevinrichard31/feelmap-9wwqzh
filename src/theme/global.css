@@ -16,3 +16,34 @@
 /* .container-relative {
   position: relative;
 } */
+
+.containertest-main {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.containertest-second {
+  height: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.keyboard-visible .tab3-button {
+  display: none !important;
+}
+
+.has-focus.sc-ion-textarea-md-h .textarea-highlight.sc-ion-textarea-md {
+  height: 2px;
+  background: #efefef;
+}
+
+.textarea-highlight.sc-ion-textarea-md {
+  background: #efefef!important;
+}
+
+.textarea {
+  margin-bottom: 15px;
+}
