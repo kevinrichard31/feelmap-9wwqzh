@@ -1,4 +1,4 @@
-import { IonContent, IonPage, IonButton } from '@ionic/react';
+import { IonContent, IonPage, IonButton, IonRouterLink, IonTextarea, useIonViewDidEnter } from '@ionic/react';
 import { useEffect, useState, useRef } from 'react'; // Importation de useEffect et useState
 import { useIonRouter } from '@ionic/react';  // Importation de useIonRouter pour la navigation
 import { useEmotion } from '../contexts/EmotionContext'; // Accès au contexte pour récupérer les émotions
@@ -7,16 +7,26 @@ import './Describe.css';
 
 const Describe: React.FC = () => {
   const { emotion, image, background, latitude, longitude, setEmotion } = useEmotion();
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLIonTextareaElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useIonRouter();  // Utilisation de useIonRouter pour la navigation
+
+  useIonViewDidEnter(() => {
+    if (inputRef.current) {
+      inputRef.current.setFocus();
+    }
+  });
 
   useEffect(() => {
     const ionContentElement = document.querySelector('ion-content');
 
     if (ionContentElement && background) {
-      ionContentElement.style.setProperty('--ion-background-color', background);
+      // ionContentElement.style.setProperty('--ion-background-color', background);
+    }
+
+    if (inputRef.current) {
+      inputRef.current?.setFocus();
     }
 
     // Récupérer la géolocalisation à l'arrivée sur la page
@@ -54,19 +64,19 @@ const Describe: React.FC = () => {
   const handleSave = async () => {
     let userId = await asyncLocalStorage.getItem('userId');
     let userPassword = await asyncLocalStorage.getItem('password');
-  
 
-  
+
+
     setIsSaving(true);
     setError(null);
-  
+
     try {
       // Récupérer la ville et l'amenity
       const [city, { amenity, type }] = await Promise.all([
         getCityFromBDC(latitude ?? 0, longitude ?? 0),  // Ville
         getAmenityFromNominatim(latitude ?? 0, longitude ?? 0),  // Amenity
       ]);
-  
+
       const emotionDetails = {
         latitude: latitude ?? 0,
         longitude: longitude ?? 0,
@@ -76,14 +86,14 @@ const Describe: React.FC = () => {
         amenity,
         type
       };
-  
+
       // Sauvegarder l'émotion
       const result = await saveEmotion(
         userId || '',
         userPassword || '',
         emotionDetails
       );
-  
+
       if (result) {
         console.log('Emotion saved successfully:', result);
         const emotionDate = new Date().toISOString().split('T')[0];
@@ -99,17 +109,33 @@ const Describe: React.FC = () => {
     }
   };
 
+  const goToSelect = () =>{
+    router.push('/select', 'back')
+  }
+
   return (
     <IonPage className="describe">
       <IonContent>
-        <img src={image} className="emoji-size" alt="Emotion" />
-        <div className="container-input">
-          <div className="describe-title">Décris ce qui se passe :</div>
-          <textarea ref={inputRef} className="inputTextDescribe" placeholder="Décris ton émotion" />
-          <IonButton className="button-next" onClick={handleSave} disabled={isSaving} expand="full">
-            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
-          </IonButton>
-          {error && <div className="error-message">{error}</div>}
+        <div className='content-container'>
+
+
+          <div className="container-input">
+
+
+              <img src="/images/back.svg" alt="Retour" className="back-img" onClick={goToSelect}/>
+
+
+            <div className='container-title'>
+              <img src={image} className="emoji-size" alt="Emotion" />
+              <div className="describe-title">Vous avez choisi la joie, <br /><span className='describe-title-bold'>décrivez ce qui se passe :</span></div>
+            </div>
+            {/* <textarea ref={inputRef} className="inputTextDescribe" placeholder="Décris ton émotion" /> */}
+            <IonTextarea ref={inputRef} readonly={false} placeholder="Décris ton émotion" className='textarea'></IonTextarea>
+            <IonButton className="button-next" onClick={handleSave} disabled={isSaving} expand="full">
+              {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+            </IonButton>
+            {error && <div className="error-message">{error}</div>}
+          </div>
         </div>
       </IonContent>
     </IonPage>

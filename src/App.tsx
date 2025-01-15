@@ -98,73 +98,76 @@ const App: React.FC = () => {
 
     initialize();
   }, []);
-return (<EmotionProvider>
-  <IonApp>
-    <IonReactRouter>
-      <IonTabs>
-        <IonRouterOutlet>
-          <Route exact path="/tab1">
-            <Tab1 />
-          </Route>
-          <Route exact path="/tab2">
-            <Tab2 />
-          </Route>
-          <Route path="/tab3">
-            <Tab3 />
-          </Route>
-          <Route path="/select">
-            <Select />
-          </Route>
-          <Route path="/describe">
-            <Describe />
-          </Route>
-          <Route path="/emotiondetail">
-            <EmotionDetail />
-          </Route>
-          <Route exact path="/">
-            <Redirect to="/select" />
-          </Route>
-        </IonRouterOutlet>
-        <IonTabBar slot="bottom">
-          <IonTabButton tab="tab1" href="/tab1">
-            <IonIcon aria-hidden="true" icon={location} />
-          </IonTabButton>
-          <IonTabButton tab="tab2" href="/tab2">
-            <IonIcon aria-hidden="true" icon={calendarNumber} />
-          </IonTabButton>
-          {/* <IonTabButton tab="tab2" href="/tab2">
+  return (<EmotionProvider>
+    <IonApp>
+      <IonReactRouter>
+        <div className='container-relative'>
+          <IonTabs>
+            <IonRouterOutlet>
+              <Route exact path="/tab1">
+                <Tab1 />
+              </Route>
+              <Route exact path="/tab2">
+                <Tab2 />
+              </Route>
+              <Route path="/tab3">
+                <Tab3 />
+              </Route>
+              <Route path="/select">
+                <Select />
+              </Route>
+              <Route path="/describe">
+                <Describe />
+              </Route>
+              <Route path="/emotiondetail">
+                <EmotionDetail />
+              </Route>
+              <Route exact path="/">
+                <Redirect to="/select" />
+              </Route>
+            </IonRouterOutlet>
+            <IonTabBar slot="bottom">
+              <IonTabButton tab="tab1" href="/tab1">
+                <IonIcon aria-hidden="true" icon={location} />
+              </IonTabButton>
+              <IonTabButton tab="tab2" href="/tab2">
+                <IonIcon aria-hidden="true" icon={calendarNumber} />
+              </IonTabButton>
+              {/* <IonTabButton tab="tab2" href="/tab2">
             <IonIcon aria-hidden="true" icon={people} />
           </IonTabButton> */}
 
-          <IonTabButton tab="tab2" href="/tab2">
-            <IonIcon aria-hidden="true" icon={analytics} />
-          </IonTabButton>
-          <IonTabButton tab="tab3" href="/tab3">
-            <IonIcon aria-hidden="true" icon={settings} />
-          </IonTabButton>
-          <IonTabButton disabled>
-          </IonTabButton>
-          <IonTabButton disabled>
-          </IonTabButton>
+              <IonTabButton tab="tab2" href="/tab2">
+                <IonIcon aria-hidden="true" icon={analytics} />
+              </IonTabButton>
+              <IonTabButton tab="tab3" href="/tab3">
+                <IonIcon aria-hidden="true" icon={settings} />
+              </IonTabButton>
+              <IonTabButton disabled>
+              </IonTabButton>
+              <IonTabButton disabled>
+              </IonTabButton>
 
-        </IonTabBar>
+            </IonTabBar>
 
-        {/* Use IonRouterLink on a div for navigation to Tab 3 */}
+            {/* Use IonRouterLink on a div for navigation to Tab 3 */}
 
-      </IonTabs>
+          </IonTabs>
+
+        </div>
+      </IonReactRouter>
       <IonFabButton
-        className="tab3-button"
-        routerLink="/select"
-        style={{ textDecoration: 'none' }} // Optional: removes underline if you want
-      >
+              className="tab3-button"
+              routerLink="/select"
+              style={{ textDecoration: 'none' }} // Optional: removes underline if you want
+            >
 
-        <img src="/feellogo.svg" className="logo-button" />
+              <img src="/feellogo.svg" className="logo-button" />
 
-      </IonFabButton>
-    </IonReactRouter>
-  </IonApp>
-</EmotionProvider>)
-  
+            </IonFabButton>
+    </IonApp>
+  </EmotionProvider>)
+
 };
 
 export default App;

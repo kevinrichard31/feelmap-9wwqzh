@@ -1,8 +1,5 @@
 .describe .emoji-size {
-    width: 60px;
-    position: absolute;
-    left: -17px;
-    top: 120px;
+    width: 35px;
 }
 
 html {
@@ -11,7 +8,7 @@ html {
 
 .describe-title {
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 400;
 }
 
 .describe .inputTextDescribe {
@@ -24,7 +21,10 @@ html {
     box-sizing: border-box;
     padding: 0px;
     margin: 30px 0px;
-    font-family: 'Inter';
+    font-family: initial;
+    /* border: 1px solid grey; */
+    padding: 15px;
+    border-radius: 4px;
 }
 
 .describe .inputTextDescribe:focus {
@@ -32,6 +32,44 @@ html {
 
 }
 
-.describe .container-input {
-    padding: 30px; padding-left: 55px;
+.back-img {
+    width: 30px;
+    padding: 15px;
+    box-sizing: content-box;
+    position: relative;
+    left: -15px;
+    top: -15px;
+}
+
+.describe .content-container {
+padding: 30px;
+}
+
+.describe .container-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.describe .describe-title-bold {
+    font-weight: bold;
+}
+
+.describe .button-next {
+    border-radius: 13px;
+    background-color: yello;
+    font-size: 16px;
+    font-family: "Agrandir";
+    font-weight: bold;
+    color: black;
+    --background: #FFCC00;
+    overflow: hidden;
+    height: 40px;
+}
+
+.describe .textarea {
+    height: 100px;
+    margin-top: 15px;
 }

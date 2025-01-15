@@ -1,7 +1,7 @@
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
 .tab3-button {
-    position: absolute;
+    position: fixed;
     right: 16px; /* Adjust as necessary for your layout */
     bottom: 18px; /* Adjust to position above the tab bar */
     color: black;

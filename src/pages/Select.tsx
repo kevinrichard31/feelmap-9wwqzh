@@ -24,7 +24,7 @@ const Select: React.FC = () => {
     console.log('coucou');
     // On envoie uniquement l'émotion, l'image et le background
     setEmotion(emotion, image, background, 0, 0);  // Latitude et longitude par défaut à 0
-    routerLink.push('/describe');  // Navigation vers la page Describe
+    routerLink.push('/describe', 'forward');  // Navigation vers la page Describe
   };
 
   const handlePointerStart = (event: React.TouchEvent) => {
@@ -120,7 +120,7 @@ const Select: React.FC = () => {
           </div>
 
           <div className="choose-emotion">
-            Choose your mood <img src="images/arrow-down.svg" alt="" />
+            Choisis ton émotion <img src="images/arrow-down.svg" alt="" />
           </div>
           <div className="wrap-emoji"
                 onTouchStart={handlePointerStart}  // Détecte le début du toucher
