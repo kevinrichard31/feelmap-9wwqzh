@@ -50,6 +50,51 @@ const App: React.FC = () => {
   const router = useIonRouter();
 
   useEffect(() => {
+    const initialize = async () => {
+      try {
+        // 1. D'abord, récupérer la langue
+        const { value: userLocale } = await Device.getLanguageCode();
+        console.log("🌱 - Device.getLanguageCode - locale:", userLocale);
+        // 2. Vérifier l'utilisateur existant
+        const storedUserId = localStorage.getItem('userId');
+        const storedPassword = localStorage.getItem('password');
+        if (!storedUserId) {
+          // 3. Créer un nouvel utilisateur si nécessaire
+          const { id, password } = await createUser(userLocale);
+          if (id) {
+            localStorage.setItem('userId', id);
+            localStorage.setItem('password', password);
+            console.log('User ID stored:', id);
+          }
+        } else {
+          // 4. Vérifier si l'utilisateur existe dans la base de données
+          const exists = await checkUserExists(storedUserId);
+          if (!exists) {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('password');
+            console.log('User ID and password removed from localStorage');
+            // Recréer un nouvel utilisateur
+            const { id, password } = await createUser(userLocale);
+            if (id) {
+              localStorage.setItem('userId', id);
+              localStorage.setItem('password', password);
+              console.log('New user ID stored:', id);
+            }
+          } else {
+            console.log('User ID exists in the database:', storedUserId);
+          }
+        }
+      } catch (error) {
+        console.error('Initialization error:', error);
+      } finally {
+        setIsInitialized(true);
+      }
+    };
+
+    initialize();
+  }, []);
+
+  useEffect(() => {
     const setupKeyboardListeners = async () => {
       // Only set up keyboard listeners on mobile platforms
       if (isPlatform('ios') || isPlatform('android')) {
