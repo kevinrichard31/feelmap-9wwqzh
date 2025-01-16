@@ -9,6 +9,7 @@ const Lang = require('./models/Lang'); // Modèle Lang
 const EmotionHasTraits = require('./models/EmotionHasTraits'); // Modèle EmotionHasTraits
 const TraitsHasLang = require('./models/TraitsHasLang'); // Modèle TraitsHasLang
 const { Op, fn, col, literal, Sequelize } = require('sequelize');
+const PlaceType = require('./models/PlaceType');
 const app = express();
 
 const allowedOrigins = ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://localhost', 'http://localhost', 'capacitor://localhost']; // Liste des origines autorisées
@@ -157,6 +158,15 @@ app.get('/users/:id', async (req, res) => {
       // Si l'utilisateur n'existe pas, retourner un objet avec l'existence
       res.json({ exists: false });
     }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/place-types', async (req, res) => {
+  try {
+    const placeTypes = await PlaceType.findAll();
+    res.json(placeTypes);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

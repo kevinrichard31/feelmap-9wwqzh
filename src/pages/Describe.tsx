@@ -97,7 +97,9 @@ const Describe: React.FC = () => {
       if (result) {
         console.log('Emotion saved successfully:', result);
         const emotionDate = new Date().toISOString().split('T')[0];
-        router.push(`/emotiondetail/?date=${encodeURIComponent(emotionDate)}`);  // Utilisation de router.push pour naviguer
+        // router.push(`/emotiondetail/?date=${encodeURIComponent(emotionDate)}`);  
+        router.push('/selectplace')
+        // Utilisation de router.push pour naviguer
       } else {
         setError('Failed to save emotion');
       }
