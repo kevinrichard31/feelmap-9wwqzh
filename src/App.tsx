@@ -12,7 +12,8 @@ import {
   setupIonicReact,
   IonFab,
   IonFabButton,
-  useIonRouter
+  useIonRouter,
+  isPlatform
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { ellipse, square, location, calendarNumber, settingsOutline, settings, people, personAdd, person, barChart, pieChart, analytics } from 'ionicons/icons';
@@ -49,66 +50,60 @@ const App: React.FC = () => {
   const router = useIonRouter();
 
   useEffect(() => {
-    const showKeyboardHandler = () => {
-      setIsKeyboardVisible(true);
-      document.body.classList.add('keyboard-visible');
-    };
+    const setupKeyboardListeners = async () => {
+      // Only set up keyboard listeners on mobile platforms
+      if (isPlatform('ios') || isPlatform('android')) {
+        const showKeyboardHandler = () => {
+          setIsKeyboardVisible(true);
+          document.body.classList.add('keyboard-visible');
+        };
 
-    const hideKeyboardHandler = () => {
-      setIsKeyboardVisible(false);
-      document.body.classList.remove('keyboard-visible');
-    };
+        const hideKeyboardHandler = () => {
+          setIsKeyboardVisible(false);
+          document.body.classList.remove('keyboard-visible');
+        };
 
-    Keyboard.addListener('keyboardWillShow', showKeyboardHandler);
-    Keyboard.addListener('keyboardWillHide', hideKeyboardHandler);
-
-    return () => {
-      Keyboard.removeAllListeners();
-    };
-  }, []);
-
-
-
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        const { value: userLocale } = await Device.getLanguageCode();
-        console.log("🌱 - Device.getLanguageCode - locale:", userLocale);
-
-        const storedUserId = localStorage.getItem('userId');
-        const storedPassword = localStorage.getItem('password');
-
-        if (!storedUserId) {
-          const { id, password } = await createUser(userLocale);
-          if (id) {
-            localStorage.setItem('userId', id);
-            localStorage.setItem('password', password);
-            console.log('User ID stored:', id);
-          }
-        } else {
-          const exists = await checkUserExists(storedUserId);
-          if (!exists) {
-            localStorage.removeItem('userId');
-            localStorage.removeItem('password');
-            console.log('User ID and password removed from localStorage');
-            const { id, password } = await createUser(userLocale);
-            if (id) {
-              localStorage.setItem('userId', id);
-              localStorage.setItem('password', password);
-              console.log('New user ID stored:', id);
-            }
-          } else {
-            console.log('User ID exists in the database:', storedUserId);
-          }
+        try {
+          await Keyboard.addListener('keyboardWillShow', showKeyboardHandler);
+          await Keyboard.addListener('keyboardWillHide', hideKeyboardHandler);
+        } catch (error) {
+          console.warn('Keyboard plugin not available:', error);
         }
-      } catch (error) {
-        console.error('Initialization error:', error);
-      } finally {
-        setIsInitialized(true);
+
+        // Cleanup function
+        return () => {
+          Keyboard.removeAllListeners();
+        };
+      }
+      
+      // For web platform, you might want to use a different approach
+      // For example, listening to input focus events
+      if (isPlatform('desktop') || isPlatform('mobileweb')) {
+        const handleFocus = (e: FocusEvent) => {
+          if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+            setIsKeyboardVisible(true);
+            document.body.classList.add('keyboard-visible');
+          }
+        };
+
+        const handleBlur = (e: FocusEvent) => {
+          if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+            setIsKeyboardVisible(false);
+            document.body.classList.remove('keyboard-visible');
+          }
+        };
+
+        document.addEventListener('focusin', handleFocus);
+        document.addEventListener('focusout', handleBlur);
+
+        return () => {
+          document.removeEventListener('focusin', handleFocus);
+          document.removeEventListener('focusout', handleBlur);
+        };
       }
     };
 
-    initialize();
+    setupKeyboardListeners();
   }, []);
 
 
