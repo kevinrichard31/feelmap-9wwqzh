@@ -20,7 +20,7 @@ app.options('*', (req, res) => {
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
   }
-  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT, OPTIONS');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT, OPTIONS, PATCH');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.status(200).send('CORS preflight response'); // Renvoi un code 200 avec contenu
@@ -29,7 +29,7 @@ app.options('*', (req, res) => {
 // Middleware CORS sans inclure OPTIONS
 app.use(cors({
   origin: ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://www.launch.feelmap-app.com', 'launch.feelmap-app.com', 'https://localhost', 'http://localhost', 'capacitor://localhost'], // Domaines autorisés
-  methods: ['GET', 'POST', 'DELETE', 'PUT'], // Sans OPTIONS
+  methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'], // Sans OPTIONS
   credentials: true, // Autoriser les cookies/headers d'autorisation
 }));
 
@@ -44,7 +44,7 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', origin);
   }
 
-  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT, OPTIONS');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT, OPTIONS, PATCH');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Cache-Control', 'no-store'); // Désactive le cache
@@ -141,6 +141,74 @@ app.delete('/users/delete', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+app.patch('/emotions/:id/place-type', async (req, res) => {
+  console.log('Requête PATCH reçue');
+  const { id } = req.params; // ID de l'émotion à mettre à jour
+  const { userId, userPassword, placeTypeId } = req.body;
+  console.log('Body reçu:', req.body);
+
+  if (!userId || !userPassword || !placeTypeId) {
+    console.log('Erreur: paramètres manquants');
+    return res.status(400).json({ error: 'User ID, password, and placeTypeId are required' });
+  }
+
+  try {
+    const user = await User.findOne({ where: { id: userId, password: userPassword } });
+    console.log('Utilisateur trouvé:', user);
+    if (!user) {
+      return res.status(403).json({ error: 'Invalid user credentials' });
+    }
+
+    const emotion = await Emotion.findByPk(id);
+    console.log('Émotion trouvée:', emotion);
+    if (!emotion) {
+      return res.status(404).json({ error: 'Emotion not found' });
+    }
+
+    if (emotion.userId != userId) {
+      console.log("Erreur: l'utilisateur n'a pas le droit");
+      return res.status(403).json({ error: 'You do not have permission to update this emotion' });
+    }
+
+    emotion.placeTypeId = placeTypeId;
+    await emotion.save();
+
+    console.log('Émotion mise à jour:', emotion);
+    res.status(200).json({ message: 'Place type updated successfully', emotion });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route pour récupérer la dernière émotion d'un utilisateur
+app.get('/emotions/last', async (req, res) => {
+  const { userId, userPassword } = req.query;  // Récupération des paramètres de l'URL
+  console.log(userId);
+  console.log(userPassword);
+
+  if (!userId || !userPassword) {
+    return res.status(400).json({ error: 'User ID and password are required' });
+  }
+
+  try {
+    // Récupérer la dernière émotion de l'utilisateur
+    const lastEmotion = await Emotion.findOne({
+      where: { userId },
+      order: [['emotionDate', 'DESC']],
+    });
+
+    if (!lastEmotion) {
+      return res.status(404).json({ message: 'No emotions found for this user' });
+    }
+    console.log(lastEmotion);
+    res.json(lastEmotion);
+  } catch (error) {
+    console.error('Error fetching last emotion:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 
 // Route pour vérifier si un utilisateur existe

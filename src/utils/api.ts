@@ -244,3 +244,60 @@ export const getPlaceTypes = async (): Promise<Array<{ id: number, name: string 
     return [];
   }
 };
+
+export const updatePlaceType = async (
+  emotionId: string,
+  userId: string,
+  userPassword: string,
+  placeTypeId: number
+) => {
+  try {
+    console.log('ON LANCE LE PATCH')
+    const response = await fetch(`${API_URL}/emotions/${emotionId}/place-type`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        userId,
+        userPassword,
+        placeTypeId, // Le type de lieu à mettre à jour
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update place type');
+    }
+
+    return await response.json(); // Retourne les données mises à jour
+  } catch (error) {
+    console.error('Error updating place type:', error);
+    return null; // Retourne null en cas d'erreur
+  }
+};
+
+
+export const getLastEmotion = async (userId: string, userPassword: string) => {
+  try {
+    console.log(userId);
+    console.log(userPassword);
+    const response = await fetch(`${API_URL}/emotions/last?userId=${userId}&userPassword=${userPassword}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch last emotion');
+    }
+
+    return await response.json(); // Retourne la dernière émotion
+  } catch (error) {
+    console.error('Error fetching last emotion:', error);
+    return null; // Retourne null en cas d'erreur
+  }
+};
+
