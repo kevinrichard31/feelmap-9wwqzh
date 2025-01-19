@@ -1,16 +1,19 @@
 import { IonContent, IonPage, IonButton, IonRouterLink, IonTextarea, useIonViewDidEnter } from '@ionic/react';
-import { useEffect, useState, useRef } from 'react'; // Importation de useEffect et useState
-import { useIonRouter } from '@ionic/react';  // Importation de useIonRouter pour la navigation
-import { useEmotion } from '../contexts/EmotionContext'; // Accès au contexte pour récupérer les émotions
+import { useEffect, useState, useRef } from 'react';
+import { useIonRouter } from '@ionic/react';
+import { useEmotion } from '../contexts/EmotionContext';
 import { createUser, saveEmotion, getCityFromBDC, getAmenityFromNominatim } from '../utils/api';
 import './Describe.css';
+
+const MAX_CHARS = 500;
 
 const Describe: React.FC = () => {
   const { emotion, image, background, latitude, longitude, setEmotion } = useEmotion();
   const inputRef = useRef<HTMLIonTextareaElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useIonRouter();  // Utilisation de useIonRouter pour la navigation
+  const [charCount, setCharCount] = useState(0);
+  const router = useIonRouter();
 
   useIonViewDidEnter(() => {
     if (inputRef.current) {
@@ -29,12 +32,11 @@ const Describe: React.FC = () => {
       inputRef.current?.setFocus();
     }
 
-    // Récupérer la géolocalisation à l'arrivée sur la page
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setEmotion(emotion, image, background, latitude, longitude); // Mise à jour du contexte avec la latitude et la longitude
+          setEmotion(emotion, image, background, latitude, longitude);
         },
         (error) => {
           console.error('Error fetching location', error);
@@ -61,20 +63,27 @@ const Describe: React.FC = () => {
     },
   };
 
+  const handleTextChange = (event: CustomEvent) => {
+    const text = event.detail.value || '';
+    setCharCount(text.length);
+    
+    if (text.length > MAX_CHARS) {
+      inputRef.current!.value = text.slice(0, MAX_CHARS);
+      setCharCount(MAX_CHARS);
+    }
+  };
+
   const handleSave = async () => {
     let userId = await asyncLocalStorage.getItem('userId');
     let userPassword = await asyncLocalStorage.getItem('password');
-
-
 
     setIsSaving(true);
     setError(null);
 
     try {
-      // Récupérer la ville et l'amenity
       const [city, { amenity, type }] = await Promise.all([
-        getCityFromBDC(latitude ?? 0, longitude ?? 0),  // Ville
-        getAmenityFromNominatim(latitude ?? 0, longitude ?? 0),  // Amenity
+        getCityFromBDC(latitude ?? 0, longitude ?? 0),
+        getAmenityFromNominatim(latitude ?? 0, longitude ?? 0),
       ]);
 
       const emotionDetails = {
@@ -87,7 +96,6 @@ const Describe: React.FC = () => {
         type
       };
 
-      // Sauvegarder l'émotion
       const result = await saveEmotion(
         userId || '',
         userPassword || '',
@@ -96,13 +104,11 @@ const Describe: React.FC = () => {
 
       if (result) {
         console.log('Emotion saved successfully:', result);
-        const emotionDate = new Date().toISOString().split('T')[0];
-        // router.push(`/emotiondetail/?date=${encodeURIComponent(emotionDate)}`);  
         if (inputRef.current) {
-          inputRef.current.value = ''; // Vide le champ
+          inputRef.current.value = '';
+          setCharCount(0);
         }
-        router.push('/selectplace')
-        // Utilisation de router.push pour naviguer
+        router.push('/selectplace');
       } else {
         setError('Failed to save emotion');
       }
@@ -114,29 +120,38 @@ const Describe: React.FC = () => {
     }
   };
 
-  const goToSelect = () =>{
-    router.push('/select', 'back')
-  }
+  const goToSelect = () => {
+    router.push('/select', 'back');
+  };
 
   return (
     <IonPage className="describe">
       <IonContent>
         <div className='content-container'>
-
-
           <div className="container-input">
-
-
-              <img src="/images/back.svg" alt="Retour" className="back-img" onClick={goToSelect}/>
-
-
+            <img src="/images/back.svg" alt="Retour" className="back-img" onClick={goToSelect}/>
             <div className='container-title'>
               <img src={image} className="emoji-size" alt="Emotion" />
               <div className="describe-title">Vous avez choisi la joie, <br /><span className='describe-title-bold'>décrivez ce qui se passe :</span></div>
             </div>
-            {/* <textarea ref={inputRef} className="inputTextDescribe" placeholder="Décris ton émotion" /> */}
-            <IonTextarea ref={inputRef} readonly={false} placeholder="Décris ton émotion" className='textarea'></IonTextarea>
-            <IonButton className="button-next" onClick={handleSave} disabled={isSaving} expand="full">
+            <div className="textarea-container">
+              <IonTextarea 
+                ref={inputRef}
+                onIonInput={handleTextChange}
+                placeholder="Décris ton émotion"
+                className='textarea'
+                maxlength={MAX_CHARS}
+              />
+              <div className="char-counter">
+                {charCount}/{MAX_CHARS}
+              </div>
+            </div>
+            <IonButton 
+              className="button-next" 
+              onClick={handleSave} 
+              disabled={isSaving || charCount === 0} 
+              expand="full"
+            >
               {isSaving ? 'Enregistrement...' : 'Enregistrer'}
             </IonButton>
             {error && <div className="error-message">{error}</div>}

@@ -438,8 +438,8 @@ app.get('/emotions/day', async (req, res) => {
 
 // Synchronisation des modèles avec la base de données
 sequelize.sync({ 
-  // force: true,
-  alter: true
+  force: true,
+  // alter: true
  }).then(() => {
   app.listen(3055, () => {
     console.log('Server is running on port 3055');

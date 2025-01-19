@@ -60,7 +60,8 @@ const Emotion = sequelize.define('Emotion', {
       model: PlaceType,
       key: 'id',
     },
-    allowNull: true,  // Peut être nul si l'émotion n'est pas associée à un type de lieu
+    allowNull: true,
+    defaultValue: 12
   },
   placeTypeOther: {  // Champ supplémentaire pour un type de lieu personnalisé
     type: DataTypes.STRING,
