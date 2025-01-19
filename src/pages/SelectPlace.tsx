@@ -41,24 +41,24 @@ const SelectPlace: React.FC = () => {
 
   const handleClick = async (e: React.MouseEvent<HTMLIonLabelElement>, index: number) => {
     console.log("click");
-  
+
     // Récupérer les données depuis le localStorage
     const userId = localStorage.getItem("userId");
     const password = localStorage.getItem("password");
-  
+
     if (!userId || !password) {
       console.error('User ID or password is missing.');
       return;
     }
-  
+
     console.log("User ID:", userId);
     console.log("Password:", password);
 
-  
+
     // Récupérer l'ID de l'émotion ou autre paramètre depuis le dataset
-    const placeTypeId = index + 1; // Exemple : calculer placeTypeId à partir de l'index
-    
-  
+    const placeTypeId = index; // Exemple : calculer placeTypeId à partir de l'index
+
+
     // Appel de la fonction updatePlaceType
     try {
       const lastEmotion = await getLastEmotion(userId, password);
@@ -66,6 +66,9 @@ const SelectPlace: React.FC = () => {
       const response = await updatePlaceType(lastEmotion.id, userId, password, placeTypeId);
       if (response) {
         console.log("Place type updated successfully:", response);
+        const emotionDate = new Date().toISOString().split('T')[0];
+        router.push(`/emotiondetail/?date=${encodeURIComponent(emotionDate)}`);
+
       } else {
         console.error("Failed to update place type");
       }
@@ -73,25 +76,30 @@ const SelectPlace: React.FC = () => {
       console.error("Error during place type update:", error);
     }
   };
-  
 
 
 
   return (
     <IonPage className="describe">
       <IonContent>
-        <h1>Select a Place</h1>
+        <h1 className=''>Set your location</h1>
         {error && <p className="error">{error}</p>}
-        <IonList>
+        <IonList className='ionlist-select'>
           {placeTypes.map((place, index) => (
-            <IonItem key={place.id}>
-              <IonLabel
-                data-index={index}
-                onClick={(e) => handleClick(e, index)}
-              >
-                {place.name}
-              </IonLabel>
-            </IonItem>
+            <div key={place.id} className='item-place'
+            data-index={index}
+            onClick={(e) => handleClick(e, index + 1)}
+            >
+              <div className='icons-left'>
+                  <img className='img-select-place' src={`images/places/${index + 1}.svg`} alt={`Place ${index + 1}`} />
+                <div
+
+                >
+                  {place.name}
+                </div>
+              </div>
+              <img src="/images/chevron-right.svg" alt="" />
+            </div>
           ))}
 
         </IonList>

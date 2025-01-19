@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { getDailyEmotions } from '../utils/api';
 import { useEmotion } from '../contexts/EmotionContext';
 import { emotions } from '../data/emotions';
+import './EmotionDetail.css'
 
 const EmotionDetail: React.FC = () => {
   function Search() {
@@ -92,12 +93,21 @@ const EmotionDetail: React.FC = () => {
         <div>
           {emotionsList.map((emotion: any) => (
             <div key={emotion.id} className="emotion-detail-container">
-              <img src={getStaticImage(emotion.emotionName)} alt={emotion.emotionName} />
               <div className="content">
-                <p className="date">
-                {formatDateWithTime(emotion.emotionDate)} à {emotion.city || 'Lieu inconnu'}{emotion.amenity ? ', ' + emotion.amenity : ''}
-                </p>
-                <p className="description">{emotion.description}</p>
+                <div className='emoji-date'>
+                  <div className='container-content-emotion-title'>
+                    <img src={getStaticImage(emotion.emotionName)} alt={emotion.emotionName} className='img-emotion' />
+
+                      <div className='container-place-type'>
+                        <img src={`/images/places/${emotion.placeTypeId}.svg`} className='place-type' />
+                      </div>
+
+                  </div>
+                  <p className="date">
+                    {formatDateWithTime(emotion.emotionDate)} à {emotion.city || 'Lieu inconnu'}{emotion.amenity ? ', ' + emotion.amenity : ''}
+                  </p>
+                </div>
+                <p className="description">{emotion.description}                </p>
               </div>
             </div>
           ))}
@@ -108,11 +118,6 @@ const EmotionDetail: React.FC = () => {
 
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Détails de l'émotion</IonTitle>
-        </IonToolbar>
-      </IonHeader>
       <IonContent fullscreen>
         <Search />
       </IonContent>

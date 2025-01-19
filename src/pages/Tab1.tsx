@@ -103,23 +103,42 @@ const Tab1: React.FC = () => {
   const addMarkersToMap = () => {
     if (mapRef.current && emotions.length > 0) {
       emotions.forEach((emotion) => {
+        // Définir l'icône principale du marker
         const emotionIcon = L.icon({
-          iconUrl: getIconUrl(emotion.emotionName),
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-          popupAnchor: [0, -32],
+          iconUrl: getIconUrl(emotion.emotionName), // URL de l'icône principale
+          iconSize: [40, 40],
+          iconAnchor: [16, 32], // Point d'ancrage (base de l'icône)
+          popupAnchor: [0, -32], // Optionnel, si vous utilisez un popup
         });
-
+  
+        // Créer le marker principal
         const emotionMarker = L.marker([emotion.latitude, emotion.longitude], {
           icon: emotionIcon,
         });
-
-        emotionMarker.on('click', () => handleMarkerClick(emotion.emotionDate));
+  
+        // Définir une image supplémentaire pour l'indicateur (type de lieu)
+        const additionalIcon = L.divIcon({
+          html: `<img src="images/places/1.svg" alt="${emotion.type}" 
+                  />`,
+          className: 'custom-indicator', // Optionnel pour des styles supplémentaires
+        });
+  
+        // Ajouter un deuxième marker pour afficher l'image à côté/superposée
+        const indicatorMarker = L.marker([emotion.latitude, emotion.longitude], {
+          icon: additionalIcon,
+          interactive: false, // Rendre l'image non-interactive
+        });
+  
+        // Ajouter les deux markers à la carte
         emotionMarker.addTo(mapRef.current!);
+        indicatorMarker.addTo(mapRef.current!);
+  
+        // Gérer les clics uniquement sur le marker principal
+        emotionMarker.on('click', () => handleMarkerClick(emotion.emotionDate));
       });
     }
   };
-
+  
   useIonViewWillEnter(() => {
     fetchCoordinates();
     fetchEmotions();

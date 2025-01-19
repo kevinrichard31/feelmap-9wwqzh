@@ -24,7 +24,6 @@ html {
     font-family: initial;
     /* border: 1px solid grey; */
     padding: 15px;
-    border-radius: 4px;
 }
 
 .describe .inputTextDescribe:focus {
@@ -58,7 +57,7 @@ padding: 30px;
 }
 
 .describe .button-next {
-    border-radius: 13px;
+    /* border-radius: 13px; */
     font-size: 16px;
     font-family: "Agrandir"!important;
     font-weight: bold;
@@ -73,4 +72,49 @@ padding: 30px;
 .describe .textarea {
     height: 100px;
     margin-top: 15px;
+}
+
+h1 {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 45px;
+}
+
+.img-select-place {
+    background-color: #EFEEE8;
+    padding: 10px;
+    /* border-radius: 50px; */
+}
+
+.ionlist-select {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item-inner {
+    padding-bottom: 10px;
+}
+
+.item-place {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+    border-bottom: 1px solid #efefef;
+    padding-bottom: 10px;
+    min-height: 55px;
+    justify-content: space-between;
+}
+
+.ionlist-select {
+    padding: 30px;
+}
+
+.icons-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
 }
