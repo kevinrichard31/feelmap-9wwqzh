@@ -5,6 +5,8 @@ import { useEmotion } from '../contexts/EmotionContext';
 import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import './Select.css';
+import i18n from "i18next";
+import { useTranslation, initReactI18next } from "react-i18next";
 
 const Select: React.FC = () => {
   const { setEmotion } = useEmotion();
