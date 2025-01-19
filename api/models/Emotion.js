@@ -31,8 +31,11 @@ const Emotion = sequelize.define('Emotion', {
     allowNull: false,
   },
   description: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: true,
+    validate: {
+      len: [0, 10000], // Limite la longueur entre 0 et 10 000 caractères
+    }
   },
   emotionDate: {
     type: DataTypes.DATE,
