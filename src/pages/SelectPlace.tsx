@@ -40,7 +40,7 @@ const SelectPlace: React.FC = () => {
   });
 
 
-  const handleClick = async (e: React.MouseEvent<HTMLIonLabelElement>, index: number) => {
+  const handleClick = async (e: React.TouchEvent, index: number) => {
     console.log("click");
 
     // Récupérer les données depuis le localStorage
@@ -89,7 +89,7 @@ const SelectPlace: React.FC = () => {
           {placeTypes.map((place, index) => (
             <div key={place.id} className='item-place'
             data-index={index}
-            onClick={(e) => handleClick(e, index + 1)}
+            onTouchStart={(e) => handleClick(e, index + 1)}
             >
               <div className='icons-left'>
                   <img className='img-select-place' src={`images/places/${index + 1}.svg`} alt={`Place ${index + 1}`} />
