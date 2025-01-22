@@ -20,6 +20,7 @@ import { ellipse, square, location, calendarNumber, settingsOutline, settings, p
 import Tab1 from './pages/Tab1';
 import Tab2 from './pages/Tab2';
 import Tab3 from './pages/Tab3';
+
 import './theme/variables.css';
 import './theme/global.css';
 import { EmotionProvider } from './contexts/EmotionContext';
@@ -41,7 +42,7 @@ import EmotionDetail from './pages/EmotionDetail';
 import { Device } from '@capacitor/device';
 import { Keyboard } from '@capacitor/keyboard';
 import SelectPlace from './pages/SelectPlace';
-
+import i18n from './i18n';
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -54,6 +55,7 @@ const App: React.FC = () => {
       try {
         // 1. D'abord, récupérer la langue
         const { value: userLocale } = await Device.getLanguageCode();
+        i18n.changeLanguage(userLocale || 'en');
         console.log("🌱 - Device.getLanguageCode - locale:", userLocale);
         // 2. Vérifier l'utilisateur existant
         const storedUserId = localStorage.getItem('userId');
@@ -120,7 +122,7 @@ const App: React.FC = () => {
           Keyboard.removeAllListeners();
         };
       }
-      
+
       // For web platform, you might want to use a different approach
       // For example, listening to input focus events
       if (isPlatform('desktop') || isPlatform('mobileweb')) {
@@ -205,17 +207,15 @@ const App: React.FC = () => {
             </IonTabs>
           </div>
           <IonRouterLink routerLink="/select" className={`tab3-button ${isKeyboardVisible ? 'hidden' : ''}`}>
-          <IonFabButton
-          className={`tab3-button ${isKeyboardVisible ? 'hidden' : ''}`}
+            <IonFabButton
+              className={`tab3-button ${isKeyboardVisible ? 'hidden' : ''}`}
 
-          style={{ textDecoration: 'none' }}
-        >
-          <img src="/feellogo.svg" className="logo-button" alt="Logo" />
-        </IonFabButton>
+              style={{ textDecoration: 'none' }}
+            >
+              <img src="/feellogo.svg" className="logo-button" alt="Logo" />
+            </IonFabButton>
           </IonRouterLink>
-
         </IonReactRouter>
-
       </IonApp>
     </EmotionProvider>
   );

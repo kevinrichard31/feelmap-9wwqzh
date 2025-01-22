@@ -27,6 +27,7 @@
     "@lottiefiles/dotlottie-react": "^0.12.1",
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
+    "i18n": "^0.15.1",
     "i18next": "^24.2.1",
     "ionicons": "^7.0.0",
     "leaflet": "^1.9.4",

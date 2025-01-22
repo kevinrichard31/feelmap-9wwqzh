@@ -14,6 +14,7 @@ import { useIonRouter } from '@ionic/react';  // Importation de useIonRouter pou
 import { useEmotion } from '../contexts/EmotionContext'; // Accès au contexte pour récupérer les émotions
 import { createUser, saveEmotion, getCityFromBDC, getAmenityFromNominatim, getPlaceTypes, updatePlaceType, getLastEmotion } from '../utils/api';
 import './SelectPlace.css';
+import { t } from 'i18next';
 
 const SelectPlace: React.FC = () => {
   const { emotion, image, background, latitude, longitude, setEmotion } = useEmotion();
@@ -82,7 +83,7 @@ const SelectPlace: React.FC = () => {
   return (
     <IonPage className="describe">
       <IonContent>
-        <h1 className=''>Set your location</h1>
+        <h1 className=''>{t('setyourlocation')}</h1>
         {error && <p className="error">{error}</p>}
         <IonList className='ionlist-select'>
           {placeTypes.map((place, index) => (
@@ -95,7 +96,7 @@ const SelectPlace: React.FC = () => {
                 <div
 
                 >
-                  {place.name}
+                  {t(place.name)}
                 </div>
               </div>
               <img src="/images/chevron-right.svg" alt="" />

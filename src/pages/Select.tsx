@@ -5,8 +5,8 @@ import { useEmotion } from '../contexts/EmotionContext';
 import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import './Select.css';
-import i18n from "i18next";
 import { useTranslation, initReactI18next } from "react-i18next";
+import i18n from 'i18next';
 
 const Select: React.FC = () => {
   const { setEmotion } = useEmotion();
@@ -14,6 +14,7 @@ const Select: React.FC = () => {
   const [isPointerDown, setIsPointerDown] = useState(false);  // Pour savoir si l'appui est maintenu
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);  // Nouveau state pour l'élément sélectionné
   const audio = new Audio('/pop.mp3');
+  const {t } = useTranslation();
 
   useEffect(() => {
     FirebaseAnalytics.setScreenName({
@@ -118,11 +119,15 @@ const Select: React.FC = () => {
       >
         <div className="emotion-selector">
           <div className="title">
-            Comment te sens-tu <br /> <span className='bold'>maintenant ? 🦦</span>
+          {t('howdoyoufeel')}, <br /> <span className='bold'>{t('now')}</span>
+          <button onClick={() => i18n.changeLanguage('br')}>br</button>
+            <button onClick={() => i18n.changeLanguage('jp')}>jp</button>
+            <button onClick={() => i18n.changeLanguage('fr')}>fr</button>
+      <button onClick={() => i18n.changeLanguage('en')}>en</button>
           </div>
 
           <div className="choose-emotion">
-            Choisis ton émotion <img src="images/arrow-down.svg" alt="" />
+          {t('chooseyouremotion')} <img src="images/arrow-down.svg" alt="" />
           </div>
           <div className="wrap-emoji"
                 onTouchStart={handlePointerStart}  // Détecte le début du toucher
@@ -151,7 +156,8 @@ const Select: React.FC = () => {
                 </svg>
                 <div className='container-content'>
                   <DotLottieReact src={image} loop autoplay />
-                  <div style={{ marginTop: '3px' }} className='emotion-name'>{name}</div>
+                  <div style={{ marginTop: '3px' }} className='emotion-name'>{t(name)}
+                  </div>
                 </div>
               </div>
             ))}

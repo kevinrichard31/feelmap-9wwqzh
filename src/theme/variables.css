@@ -3,7 +3,7 @@ http://ionicframework.com/docs/theming/ */
 .tab3-button {
     position: absolute;
     right: 16px; /* Adjust as necessary for your layout */
-    bottom: 18px; /* Adjust to position above the tab bar */
+    bottom: 9px; /* Adjust to position above the tab bar */
     color: black;
     border-radius: 20px; /* Optional: for rounded corners */
     z-index: 10; /* Ensure it appears above the tab bar */

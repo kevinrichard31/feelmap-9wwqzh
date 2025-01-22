@@ -4,6 +4,7 @@ import { useIonRouter } from '@ionic/react';
 import { useEmotion } from '../contexts/EmotionContext';
 import { createUser, saveEmotion, getCityFromBDC, getAmenityFromNominatim } from '../utils/api';
 import './Describe.css';
+import { useTranslation } from 'react-i18next';
 
 const MAX_CHARS = 500;
 
@@ -14,6 +15,7 @@ const Describe: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [charCount, setCharCount] = useState(0);
   const router = useIonRouter();
+  const {t} = useTranslation();
 
   useIonViewDidEnter(() => {
     if (inputRef.current) {
@@ -132,13 +134,13 @@ const Describe: React.FC = () => {
             <img src="/images/back.svg" alt="Retour" className="back-img" onClick={goToSelect}/>
             <div className='container-title'>
               <img src={image} className="emoji-size" alt="Emotion" />
-              <div className="describe-title">Vous avez choisi la joie, <br /><span className='describe-title-bold'>décrivez ce qui se passe :</span></div>
+              <div className="describe-title">{t('youchoosed')} {t(emotion)} <br /><span className='describe-title-bold'>{t('describewhathappen')} :</span></div>
             </div>
             <div className="textarea-container">
               <IonTextarea 
                 ref={inputRef}
                 onIonInput={handleTextChange}
-                placeholder="Décris ton émotion"
+                placeholder={t('describeyouremotion')}
                 className='textarea'
                 maxlength={MAX_CHARS}
               />
@@ -152,7 +154,7 @@ const Describe: React.FC = () => {
               disabled={isSaving || charCount === 0} 
               expand="full"
             >
-              {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+              {isSaving ? 'Enregistrement...' : t('register')}
             </IonButton>
             {error && <div className="error-message">{error}</div>}
           </div>
