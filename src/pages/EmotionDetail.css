@@ -142,3 +142,8 @@ ion-content {
 .container-content-emotion-title {
   position: relative;
 }
+
+h2 {
+  padding-left: 0;
+  text-align: center;
+}

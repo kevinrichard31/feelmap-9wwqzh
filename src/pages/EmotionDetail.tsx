@@ -6,6 +6,7 @@ import { getDailyEmotions } from '../utils/api';
 import { useEmotion } from '../contexts/EmotionContext';
 import { emotions } from '../data/emotions';
 import './EmotionDetail.css'
+import { useTranslation } from 'react-i18next';
 
 const EmotionDetail: React.FC = () => {
   function Search() {
@@ -13,7 +14,7 @@ const EmotionDetail: React.FC = () => {
     const [emotionsList, setEmotionsList] = useState<any[]>([]);
     const [lastEmotion, setLastEmotion] = useState<any>(null);
     const location = useLocation(); // Utilisation de useLocation pour récupérer les params de la requête
-
+    const { t } = useTranslation();
     // Récupération de la date depuis l'URL
     const date = new URLSearchParams(location.search).get('date'); // extraction du paramètre "date" dans l'URL
 
@@ -60,33 +61,43 @@ const EmotionDetail: React.FC = () => {
       const emotionData = emotions.find((emo) => emo.name === emotionName);
       return emotionData ? emotionData.imageStatic : '';
     };
-
-    // Fonction pour formater la date en "Lundi 1 Août"
-    const formatDate = (dateString: string) => {
-      const dateObject = new Date(dateString);
-      return new Intl.DateTimeFormat('fr-FR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-      }).format(dateObject);
+    // Fonction pour obtenir le jour de la semaine traduit
+    const getTranslatedWeekday = (date: Date, t: any) => {
+      const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const weekday = weekdays[date.getDay()];
+      return t(`days.${weekday}`);
     };
 
-    // Fonction pour formater la date avec l'heure en "19h35"
+    // Fonction pour obtenir le mois traduit
+    const getTranslatedMonth = (date: Date, t: any) => {
+      const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+      const month = months[date.getMonth()];
+      return t(`months.${month}`);
+    };
+
+    // Fonction pour formater la date en utilisant les traductions
+    const formatDate = (dateString: string, t: any) => {
+      const dateObject = new Date(dateString);
+      const day = dateObject.getDate();
+      const translatedWeekday = getTranslatedWeekday(dateObject, t);
+      const translatedMonth = getTranslatedMonth(dateObject, t);
+
+      return `${translatedWeekday} ${day} ${translatedMonth}`;
+    };
+
+    // Fonction pour formater la date avec l'heure
     const formatDateWithTime = (dateString: string) => {
       const dateObject = new Date(dateString);
-      const formattedTime = new Intl.DateTimeFormat('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(dateObject);
+      const hours = dateObject.getHours().toString().padStart(2, '0');
+      const minutes = dateObject.getMinutes().toString().padStart(2, '0');
 
-      return `${formattedTime}`;
+      return `${hours}h${minutes}`;
     };
-
     return (
       <div>
         {date && (
           <div className="selected-date">
-            <h2>{formatDate(date)}</h2>
+        <h2>{formatDate(date, t)}</h2>
           </div>
         )}
 
@@ -98,13 +109,13 @@ const EmotionDetail: React.FC = () => {
                   <div className='container-content-emotion-title'>
                     <img src={getStaticImage(emotion.emotionName)} alt={emotion.emotionName} className='img-emotion' />
 
-                      <div className='container-place-type'>
-                        <img src={`/images/places/${emotion.placeTypeId}.svg`} className='place-type' />
-                      </div>
+                    <div className='container-place-type'>
+                      <img src={`/images/places/${emotion.placeTypeId}.svg`} className='place-type' />
+                    </div>
 
                   </div>
                   <p className="date">
-                    {formatDateWithTime(emotion.emotionDate)} à {emotion.city || 'Lieu inconnu'}{emotion.amenity ? ', ' + emotion.amenity : ''}
+                    {formatDateWithTime(emotion.emotionDate)} {t('à')} {emotion.city || 'Lieu inconnu'}{emotion.amenity ? ', ' + emotion.amenity : ''}
                   </p>
                 </div>
                 <p className="description">{emotion.description}                </p>

@@ -8,7 +8,7 @@
   "Motivation": "Motivação",
   "Surprise": "Surpresa",
   "Joie": "Alegria",
-  "Envie": "Inveja",
+  "Envie": "Desejo",
   "Embarras": "Constrangimento",
   "Anxiété": "Ansiedade",
   "Ennui": "Tédio",
@@ -30,5 +30,29 @@
   "Home and Family": "Casa e Família",
   "Health and Healthcare": "Saúde e Cuidados Médicos",
   "Finance and Administrative": "Finanças e Administrativo",
-  "Other": "Outro"
+  "Other": "Outro",
+  "à": "para",
+  "days": {
+    "monday": "Segunda-feira",
+    "tuesday": "Terça-feira",
+    "wednesday": "Quarta-feira",
+    "thursday": "Quinta-feira",
+    "friday": "Sexta-feira",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
+  },
+  "months": {
+    "january": "Janeiro",
+    "february": "Fevereiro",
+    "march": "Março",
+    "april": "Abril",
+    "may": "Maio",
+    "june": "Junho",
+    "july": "Julho",
+    "august": "Agosto",
+    "september": "Setembro",
+    "october": "Outubro",
+    "november": "Novembro",
+    "december": "Dezembro"
+  }
 }
