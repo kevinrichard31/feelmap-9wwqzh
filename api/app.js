@@ -78,29 +78,46 @@ app.get('/test', (req, res) => {
   res.send('CORS is working!');
 });
 
-app.get('/ai/:content', async (req, res) => {
+const callAiMatrix = async (content) => {
   try {
-    const { content } = req.params; // Récupère le texte depuis les paramètres de l'URL
+    const prompt = `
+      Based on the following description, create a JSON with custom variables. Create a matrix with personality traits and interests.
+      Do not display variables with a score of 0. For each category, include detailed variables:
+      - Health
+      - Personality
+      - Interests
+      - Social
+      Add the following scores to the end of the JSON: health_score, nutrition_score, relaxation_score, mental_score (each with values -1 or +1).
+      The final JSON should exclude variables with a score of 0 and should not duplicate variables.
+      Format the response as JSON only, and add a "best" array containing the most interesting variable names (max 3).
+      Here is the description: 
+      "${content}"
+    `;
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
+          role: "system",
+          content: `à partir de ce texte, créer un json avec des variables personnalisées, créer une matrice sur les traits de personnalités et centres d'intérêts, pas d'espace à partir du texte utilisateur, tu auras comme variable santé, personnalité, centre d'intérêts et social, tu dois mettre un score(integer) de -1 ou 0 ou +1, affiche pas le zéro pour chaque trait /activités, renvoi que le json. Pour chaque catégorie ajoutée des variables, sois assez précis sur les variables. tout en anglais ajoute également un score à la fin du json, health_score, nutrition_score, relaxation_score, mental_score toujours de -1 ou 0 ou +1 Ne te base que sur ce qui à été fait, interprète pas trop. ajoute "best" à la fin du json avec tableau pour les noms de variables les plus intéressants VOIR drole (3max) Si une variable est à 0 ne l'affiche pas, ne duplique pas les variables. verifie chaque variable pour que tu sois pertinents le plus possible, utilise des noms famillier`
+        },
+        {
           role: "user",
-          content: content, // Utilise le texte des paramètres
+          content: content,
         }
       ],
-      store: false,
-      max_tokens: 200, // Limite la réponse à 100 tokens
+      response_format: { type: "json_object" },
+      max_tokens: 200
     });
 
-    console.log(completion.choices[0].message.content); // Affiche la réponse de l'IA
-    res.send(completion.choices[0].message.content); // Envoie la réponse à l'utilisateur
+    // Directly parse the JSON response
+    let aiResponseJson = completion.choices[0].message.content;
+    return JSON.parse(aiResponseJson);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Une erreur est survenue.");
+    throw new Error("Une erreur est survenue lors de l'appel à l'IA.");
   }
-});
+};
 
 
 // Route pour créer un nouvel utilisateur
@@ -352,12 +369,16 @@ app.post('/emotions', async (req, res) => {
   try {
     const { userId, latitude, longitude, emotionName, description, city, amenity, type } = req.body;
 
-    console.log(req.body.userId)
+    console.log(req.body.userId);
+    
     // Vérifier si l'utilisateur existe
     const userExists = await User.findByPk(userId);
     if (!userExists) {
       return res.status(400).json({ error: 'User not found' });
     }
+
+    // Appel à l'IA pour analyser la description et générer le JSON personnalisé
+    const aiResponse = await callAiMatrix(description);
 
     // Créer l'émotion
     const emotion = await Emotion.create({
@@ -368,9 +389,12 @@ app.post('/emotions', async (req, res) => {
       description,
       city,
       amenity,
-      type
+      type,
+      aiResponse: aiResponse
     });
-    res.json(emotion);
+
+    // Répondre avec l'émotion et la réponse de l'IA
+    res.json({ emotion });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

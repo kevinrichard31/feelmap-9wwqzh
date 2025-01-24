@@ -61,10 +61,14 @@ const Emotion = sequelize.define('Emotion', {
       key: 'id',
     },
     allowNull: true
-    },
+  },
   placeTypeOther: {  // Champ supplémentaire pour un type de lieu personnalisé
     type: DataTypes.STRING,
     allowNull: true,  // Peut être nul si l'utilisateur ne remplit pas ce champ
+  },
+  aiResponse: {  // Nouveau champ pour stocker la réponse JSON de l'IA
+    type: DataTypes.JSONB,  // Utilisation du type JSONB pour plus de flexibilité
+    allowNull: true,
   },
 }, {
   tableName: 'emotions',
