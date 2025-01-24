@@ -10,6 +10,14 @@ const EmotionHasTraits = require('./models/EmotionHasTraits'); // Modèle Emotio
 const TraitsHasLang = require('./models/TraitsHasLang'); // Modèle TraitsHasLang
 const { Op, fn, col, literal, Sequelize } = require('sequelize');
 const PlaceType = require('./models/PlaceType');
+
+const OpenAI = require('openai');
+require('dotenv').config();
+
+const client = new OpenAI({
+  apiKey: process.env['OPENAI_API_KEY'], // La clé API d'OpenAI est récupérée depuis les variables d'environnement.
+});
+
 const app = express();
 
 const allowedOrigins = ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://localhost', 'http://localhost', 'capacitor://localhost']; // Liste des origines autorisées
@@ -69,6 +77,31 @@ app.get('/test-connection', async (req, res) => {
 app.get('/test', (req, res) => {
   res.send('CORS is working!');
 });
+
+app.get('/ai/:content', async (req, res) => {
+  try {
+    const { content } = req.params; // Récupère le texte depuis les paramètres de l'URL
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: content, // Utilise le texte des paramètres
+        }
+      ],
+      store: false,
+      max_tokens: 200, // Limite la réponse à 100 tokens
+    });
+
+    console.log(completion.choices[0].message.content); // Affiche la réponse de l'IA
+    res.send(completion.choices[0].message.content); // Envoie la réponse à l'utilisateur
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Une erreur est survenue.");
+  }
+});
+
 
 // Route pour créer un nouvel utilisateur
 app.post('/users', async (req, res) => {
