@@ -140,10 +140,24 @@ const Tab1: React.FC = () => {
   };
   
   useIonViewWillEnter(() => {
-    fetchCoordinates();
-    fetchEmotions();
+    const initialize = async () => {
+      try {
+        // Attendre la fin de fetchCoordinates
+        await fetchCoordinates();
+  
+        // Une fois les coordonnées récupérées, fetch les émotions
+        await fetchEmotions();
+      } catch (error) {
+        console.error('Error during initialization:', error);
+      }
+        console.log("🚀 ~ initialize ~ fetchEmotions:", fetchEmotions)
+        console.log("🚀 ~ initialize ~ fetchCoordinates:", fetchCoordinates)
+    };
+  
+    // Appeler la fonction d'initialisation
+    initialize();
   });
-
+  
   useEffect(() => {
     if (coordinates) {
       initializeMap();
