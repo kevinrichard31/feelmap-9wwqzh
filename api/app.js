@@ -12,6 +12,9 @@ const { Op, fn, col, literal, Sequelize } = require('sequelize');
 const PlaceType = require('./models/PlaceType');
 
 const OpenAI = require('openai');
+const TraitsType = require('./models/TraitsType');
+const callAiMatrix = require('./utils/callAiMatrix');
+const translateTrait = require('./utils/translateTrait');
 require('dotenv').config();
 
 const client = new OpenAI({
@@ -78,46 +81,7 @@ app.get('/test', (req, res) => {
   res.send('CORS is working!');
 });
 
-const callAiMatrix = async (content) => {
-  try {
-    const prompt = `
-      Based on the following description, create a JSON with custom variables. Create a matrix with personality traits and interests.
-      Do not display variables with a score of 0. For each category, include detailed variables:
-      - Health
-      - Personality
-      - Interests
-      - Social
-      Add the following scores to the end of the JSON: health_score, nutrition_score, relaxation_score, mental_score (each with values -1 or +1).
-      The final JSON should exclude variables with a score of 0 and should not duplicate variables.
-      Format the response as JSON only, and add a "best" array containing the most interesting variable names (max 3).
-      Here is the description: 
-      "${content}"
-    `;
 
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `à partir de ce texte, créer un json avec des variables personnalisées, créer une matrice sur les traits de personnalités et centres d'intérêts, pas d'espace à partir du texte utilisateur, tu auras comme variable santé, personnalité, centre d'intérêts et social, tu dois mettre un score(integer) de -1 ou 0 ou +1, affiche pas le zéro pour chaque trait /activités, renvoi que le json. Pour chaque catégorie ajoutée des variables, sois assez précis sur les variables. tout en anglais ajoute également un score à la fin du json, health_score, nutrition_score, relaxation_score, mental_score toujours de -1 ou 0 ou +1 Ne te base que sur ce qui à été fait, interprète pas trop. ajoute "best" à la fin du json avec tableau pour les noms de variables les plus intéressants VOIR drole (3max) Si une variable est à 0 ne l'affiche pas, ne duplique pas les variables. verifie chaque variable pour que tu sois pertinents le plus possible, utilise des noms famillier`
-        },
-        {
-          role: "user",
-          content: content,
-        }
-      ],
-      response_format: { type: "json_object" },
-      max_tokens: 200
-    });
-
-    // Directly parse the JSON response
-    let aiResponseJson = completion.choices[0].message.content;
-    return JSON.parse(aiResponseJson);
-  } catch (error) {
-    console.error(error);
-    throw new Error("Une erreur est survenue lors de l'appel à l'IA.");
-  }
-};
 
 
 // Route pour créer un nouvel utilisateur
@@ -369,18 +333,13 @@ app.post('/emotions', async (req, res) => {
   try {
     const { userId, latitude, longitude, emotionName, description, city, amenity, type } = req.body;
 
-    console.log(req.body.userId);
-    
-    // Vérifier si l'utilisateur existe
+    // Vérification de l'existence de l'utilisateur
     const userExists = await User.findByPk(userId);
     if (!userExists) {
       return res.status(400).json({ error: 'User not found' });
     }
 
-    // Appel à l'IA pour analyser la description et générer le JSON personnalisé
-    const aiResponse = await callAiMatrix(description);
-
-    // Créer l'émotion
+    // Création immédiate de l'émotion avec des données de base
     const emotion = await Emotion.create({
       userId,
       latitude,
@@ -390,15 +349,178 @@ app.post('/emotions', async (req, res) => {
       city,
       amenity,
       type,
-      aiResponse: aiResponse
+      aiResponse: null // Temporairement null
     });
 
-    // Répondre avec l'émotion et la réponse de l'IA
+    // Répondre immédiatement au client
     res.json({ emotion });
+
+    // Traitement asynchrone post-réponse
+    (async () => {
+      try {
+        // Appel à l'IA pour générer la réponse
+        const aiResponse = await callAiMatrix(description, client);
+
+        // Mettre à jour l'émotion avec la réponse AI
+        await Emotion.update(
+          { aiResponse: aiResponse },
+          { where: { id: emotion.id } }
+        );
+
+        // Traitement des traits
+        const traitTypes = ['health', 'social', 'personality', 'interests', 'brands_mentionned'];
+        const emotionHasTraitsData = [];
+
+        for (const traitType of traitTypes) {
+          const traitTypeRecord = await TraitsType.findOne({ where: { name: traitType } });
+
+          if (traitTypeRecord && aiResponse[traitType]) {
+            const traitsPromises = Object.entries(aiResponse[traitType]).map(async ([name, score]) => {
+              try {
+                // Trouver ou créer le trait
+                let trait = await Traits.findOne({
+                  where: { name, typeId: traitTypeRecord.id }
+                });
+
+                if (!trait) {
+                  trait = await Traits.create({
+                    name,
+                    typeId: traitTypeRecord.id
+                  });
+                }
+
+                // Ajouter les associations dans le tableau
+                emotionHasTraitsData.push({
+                  emotion_id: emotion.id,
+                  traits_id: trait.id,
+                  score: score
+                });
+              } catch (traitError) {
+                console.error(`Error processing trait ${name}:`, traitError);
+              }
+            });
+
+            await Promise.all(traitsPromises);
+          }
+        }
+
+        // Insérer toutes les associations en une seule fois
+        if (emotionHasTraitsData.length > 0) {
+          await EmotionHasTraits.bulkCreate(emotionHasTraitsData, {
+            updateOnDuplicate: ['score']
+          });
+        }
+
+        // Traduction des traits
+        const allTraitIds = emotionHasTraitsData.map(item => item.traits_id);
+        const traitsToTranslate = await Traits.findAll({
+          where: { id: allTraitIds },
+        });
+
+        const translationPromises = traitsToTranslate.map(async (trait) => {
+          const translationResults = await translateTrait(trait.name, client, Lang);
+
+          if (translationResults && translationResults.translations) {
+            const langPromises = translationResults.allLangs.map(async (lang) => {
+              const translatedName = translationResults.translations[lang.code];
+
+              if (translatedName) {
+                await TraitsHasLang.findOrCreate({
+                  where: { 
+                    traits_id: trait.id, 
+                    lang_id: lang.id 
+                  },
+                  defaults: {
+                    traits_id: trait.id,
+                    lang_id: lang.id,
+                    name: translatedName,
+                  }
+                });
+              }
+            });
+
+            await Promise.all(langPromises);
+          }
+        });
+
+        await Promise.all(translationPromises);
+
+      } catch (processError) {
+        console.error('Post-response processing error:', processError);
+      }
+    })();
+
   } catch (error) {
+    console.error('Emotion creation error:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
+const emotionTraits = async() => {
+  try {
+    const { emotionId, userId } = req.query;
+
+    // Vérification de l'existence de l'émotion
+    const emotionExists = await Emotion.findByPk(emotionId);
+    if (!emotionExists) {
+      return res.status(400).json({ error: 'Emotion not found' });
+    }
+
+    // Vérification de l'existence de l'utilisateur pour récupérer la langue
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
+    // Langue de l'utilisateur
+    const userLangId = user.lang_id;
+
+    // Requête SQL pour récupérer les traits et les scores
+    const query = `
+      WITH best_traits AS (
+        SELECT jsonb_array_elements_text(emotions."aiResponse"->'best') AS best_trait
+        FROM emotions 
+        WHERE id = :emotionId
+      )
+      SELECT traits.*, emotion_has_traits.score
+      FROM best_traits
+      JOIN traits ON traits.name = best_traits.best_trait
+      JOIN emotion_has_traits ON emotion_has_traits.traits_id = traits.id
+      JOIN emotions ON emotions.id = emotion_has_traits.emotion_id
+      WHERE emotions.id = :emotionId;
+    `;
+
+    // Exécution de la requête pour récupérer les traits
+    const traitsData = await sequelize.query(query, {
+      replacements: { emotionId },
+      type: sequelize.QueryTypes.SELECT,
+    });
+
+    // Récupérer la traduction des traits pour la langue de l'utilisateur
+    const traitIds = traitsData.map(trait => trait.id);
+    const translations = await TraitsHasLang.findAll({
+      where: { lang_id: userLangId, traits_id: traitIds },
+      attributes: ['traits_id', 'name']
+    });
+
+    // Mapper les traductions aux traits
+    const translatedTraitsData = traitsData.map(trait => {
+      const translation = translations.find(t => t.traits_id === trait.id);
+      return {
+        ...trait,
+        translated_name: translation ? translation.name : trait.name // Utilisation du nom traduit s'il existe
+      };
+    });
+
+    // Retourner les traits avec leurs traductions
+    res.json({ traits: translatedTraitsData });
+  } catch (error) {
+    console.error('Error fetching emotion traits:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+
 app.get('/emotions', async (req, res) => {
   try {
     const { userId, month, year } = req.query;
@@ -494,10 +616,10 @@ app.get('/emotions/day', async (req, res) => {
 
 
 // Synchronisation des modèles avec la base de données
-sequelize.sync({ 
+sequelize.sync({
   // force: true,
   alter: true
- }).then(() => {
+}).then(() => {
   app.listen(3055, () => {
     console.log('Server is running on port 3055');
   });

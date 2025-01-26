@@ -15,6 +15,8 @@ const sequelize = new Sequelize(
       collate: 'utf8_unicode_ci', // Cela peut être ignoré pour PostgreSQL
     }
   }
+
+  
 );
 
 module.exports = sequelize;

@@ -19,7 +19,7 @@ const EmotionHasTraits = sequelize.define('EmotionHasTraits', {
     }
   },
   score: {
-    type: DataTypes.FLOAT,
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
 }, {
