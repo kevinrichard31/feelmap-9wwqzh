@@ -34,5 +34,4 @@ const Traits = sequelize.define('Traits', {
 // Définir la relation entre Traits et TraitTypes
 Traits.belongsTo(TraitsType, { foreignKey: 'typeId' });
 TraitsType.hasMany(Traits, { foreignKey: 'typeId' });
-
 module.exports = Traits;

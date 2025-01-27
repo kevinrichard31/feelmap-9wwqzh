@@ -3,10 +3,12 @@ const express = require('express');
 const cors = require('cors'); // Importer le middleware CORS
 const sequelize = require('./config/database');
 const User = require('./models/User'); // Modèle User
-const Emotion = require('./models/Emotion'); // Modèle Emotion
-const Traits = require('./models/Traits'); // Modèle Traits
+
+
 const Lang = require('./models/Lang'); // Modèle Lang
 const EmotionHasTraits = require('./models/EmotionHasTraits'); // Modèle EmotionHasTraits
+const Traits = require('./models/Traits'); // Modèle Traits
+const Emotion = require('./models/Emotion'); // Modèle Emotion
 const TraitsHasLang = require('./models/TraitsHasLang'); // Modèle TraitsHasLang
 const { Op, fn, col, literal, Sequelize } = require('sequelize');
 const PlaceType = require('./models/PlaceType');
@@ -15,6 +17,8 @@ const OpenAI = require('openai');
 const TraitsType = require('./models/TraitsType');
 const callAiMatrix = require('./utils/callAiMatrix');
 const translateTrait = require('./utils/translateTrait');
+const setupAssociations = require('./models/associations');
+setupAssociations()
 require('dotenv').config();
 
 const client = new OpenAI({
@@ -456,69 +460,6 @@ app.post('/emotions', async (req, res) => {
   }
 });
 
-const emotionTraits = async() => {
-  try {
-    const { emotionId, userId } = req.query;
-
-    // Vérification de l'existence de l'émotion
-    const emotionExists = await Emotion.findByPk(emotionId);
-    if (!emotionExists) {
-      return res.status(400).json({ error: 'Emotion not found' });
-    }
-
-    // Vérification de l'existence de l'utilisateur pour récupérer la langue
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(400).json({ error: 'User not found' });
-    }
-
-    // Langue de l'utilisateur
-    const userLangId = user.lang_id;
-
-    // Requête SQL pour récupérer les traits et les scores
-    const query = `
-      WITH best_traits AS (
-        SELECT jsonb_array_elements_text(emotions."aiResponse"->'best') AS best_trait
-        FROM emotions 
-        WHERE id = :emotionId
-      )
-      SELECT traits.*, emotion_has_traits.score
-      FROM best_traits
-      JOIN traits ON traits.name = best_traits.best_trait
-      JOIN emotion_has_traits ON emotion_has_traits.traits_id = traits.id
-      JOIN emotions ON emotions.id = emotion_has_traits.emotion_id
-      WHERE emotions.id = :emotionId;
-    `;
-
-    // Exécution de la requête pour récupérer les traits
-    const traitsData = await sequelize.query(query, {
-      replacements: { emotionId },
-      type: sequelize.QueryTypes.SELECT,
-    });
-
-    // Récupérer la traduction des traits pour la langue de l'utilisateur
-    const traitIds = traitsData.map(trait => trait.id);
-    const translations = await TraitsHasLang.findAll({
-      where: { lang_id: userLangId, traits_id: traitIds },
-      attributes: ['traits_id', 'name']
-    });
-
-    // Mapper les traductions aux traits
-    const translatedTraitsData = traitsData.map(trait => {
-      const translation = translations.find(t => t.traits_id === trait.id);
-      return {
-        ...trait,
-        translated_name: translation ? translation.name : trait.name // Utilisation du nom traduit s'il existe
-      };
-    });
-
-    // Retourner les traits avec leurs traductions
-    res.json({ traits: translatedTraitsData });
-  } catch (error) {
-    console.error('Error fetching emotion traits:', error);
-    res.status(500).json({ error: error.message });
-  }
-}
 
 
 app.get('/emotions', async (req, res) => {
@@ -575,6 +516,81 @@ app.get('/emotions', async (req, res) => {
   }
 });
 
+app.get('/testemo', async (req, res) => {
+  try {
+    const { emotionId, userId } = req.query;
+
+    // Vérification de l'existence de l'émotion
+    const emotion = await Emotion.findByPk(emotionId);
+    if (!emotion) {
+      return res.status(400).json({ error: 'Emotion not found' });
+    }
+
+    // Vérification de l'existence de l'utilisateur pour récupérer la langue
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
+    // Langue de l'utilisateur
+    const userLangId = user.lang_id;
+
+    // Récupérer les noms des traits à partir du champ 'aiResponse' de l'émotion
+    const bestTraits = emotion.aiResponse?.best || [];
+    
+    if (!Array.isArray(bestTraits) || bestTraits.length === 0) {
+       return res.json({ traits: [] });
+    }
+
+    // Récupérer les traits correspondants et leurs scores
+    const traitsData = await Traits.findAll({ // Utilisation de Traits
+      where: {
+        name: bestTraits,
+      },
+      include: [
+        {
+          model: EmotionHasTraits, // Utilisation de EmotionHasTrait
+          as: 'EmotionHasTraits', 
+          where: { emotion_id: emotionId },
+          attributes: ['score'],
+        },
+      ],
+      attributes: ['id', 'name']
+    });
+
+
+    // Récupérer les ID des traits
+    const traitIds = traitsData.map(trait => trait.id);
+
+    // Récupérer les traductions des traits pour la langue de l'utilisateur
+    const translations = await TraitsHasLang.findAll({
+        where: {
+           lang_id: userLangId,
+           traits_id: traitIds
+        },
+        attributes: ['traits_id', 'name']
+    });
+
+
+    // Mapper les traductions aux traits
+    const translatedTraitsData = traitsData.map(trait => {
+        const translation = translations.find(t => t.traits_id === trait.id);
+        return {
+          id: trait.id,
+          name: trait.name,
+          translated_name: translation ? translation.name : trait.name,
+          score: trait.EmotionHasTraits ? trait.EmotionHasTraits[0].score : null
+        };
+      });
+
+    // Retourner les traits avec leurs traductions
+    res.json({ traits: translatedTraitsData });
+  } catch (error) {
+    console.error('Error fetching emotion traits:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Route pour récupérer toutes les émotions d'une journée pour un utilisateur
 app.get('/emotions/day', async (req, res) => {
   try {
@@ -585,13 +601,17 @@ app.get('/emotions/day', async (req, res) => {
 
     // Convertir la date en début et fin de la journée
     const startDate = new Date(date);
-    startDate.setHours(0, 0, 0, 0); // Début de la journée à 00:00:00
-
+    startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(date);
-    endDate.setHours(23, 59, 59, 999); // Fin de la journée à 23:59:59
+    endDate.setHours(23, 59, 59, 999);
 
-    console.log(startDate)
-    console.log(endDate)
+    // Récupérer l'utilisateur pour la langue
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+    const userLangId = user.lang_id;
+
     // Récupérer toutes les émotions de la journée spécifiée
     const emotions = await Emotion.findAll({
       where: {
@@ -600,20 +620,66 @@ app.get('/emotions/day', async (req, res) => {
           [Op.between]: [startDate, endDate]
         }
       },
-      order: [['emotionDate', 'DESC']], // Trier par date décroissante
-      raw: true
+      order: [['emotionDate', 'DESC']],
     });
 
-    console.log(emotions)
+    // Transformer les émotions avec les infos des traits
+    const emotionsWithTraits = await Promise.all(emotions.map(async (emotion) => {
+      
+        const emotionData = emotion.get()
+        const bestTraits = emotion.aiResponse?.best || [];
 
-    // Retourner les émotions trouvées
-    res.json(emotions);
+
+        let traits = [];
+        if(bestTraits && bestTraits.length > 0) {
+            const traitsData =  await Traits.findAll({
+                include: [
+                    {
+                       model: EmotionHasTraits,
+                       as: 'EmotionHasTraits',
+                       where: { emotion_id: emotion.id },
+                        attributes: ['score'],
+                     },
+                 ],
+                where: { name: bestTraits }
+              });
+
+             const traitIds = traitsData.map(trait => trait.id);
+                
+             const translations = await TraitsHasLang.findAll({
+                 where: {
+                     lang_id: userLangId,
+                     traits_id: traitIds
+                  },
+                attributes: ['traits_id', 'name']
+              });
+
+
+              traits = traitsData.map(trait => {
+                 const translation = translations.find(t => t.traits_id === trait.id);
+                    return {
+                       id: trait.id,
+                       name: trait.name,
+                        translated_name: translation ? translation.name : trait.name,
+                      score: trait.EmotionHasTraits && trait.EmotionHasTraits.length > 0 ? trait.EmotionHasTraits[0].score : null
+                    };
+                });
+           }
+
+           return {
+               ...emotionData,
+               traits: traits
+           }
+    }));
+       
+
+    // Retourner les émotions avec leurs traits
+    res.json(emotionsWithTraits);
   } catch (error) {
+    console.error('Error fetching emotions with traits:', error);
     res.status(500).json({ error: error.message });
   }
-
 });
-
 
 // Synchronisation des modèles avec la base de données
 sequelize.sync({

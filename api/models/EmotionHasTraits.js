@@ -6,6 +6,7 @@ const Traits = require('./Traits');
 const EmotionHasTraits = sequelize.define('EmotionHasTraits', {
   emotion_id: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     references: {
       model: Emotion,
       key: 'id',
@@ -13,6 +14,7 @@ const EmotionHasTraits = sequelize.define('EmotionHasTraits', {
   },
   traits_id: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     references: {
       model: Traits,
       key: 'id',
@@ -26,8 +28,5 @@ const EmotionHasTraits = sequelize.define('EmotionHasTraits', {
   tableName: 'emotion_has_traits',
   timestamps: false,
 });
-
-Emotion.belongsToMany(Traits, { through: EmotionHasTraits, foreignKey: 'emotion_id' });
-Traits.belongsToMany(Emotion, { through: EmotionHasTraits, foreignKey: 'traits_id' });
 
 module.exports = EmotionHasTraits;
