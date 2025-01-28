@@ -18,6 +18,7 @@ const TraitsType = require('./models/TraitsType');
 const callAiMatrix = require('./utils/callAiMatrix');
 const translateTrait = require('./utils/translateTrait');
 const setupAssociations = require('./models/associations');
+const getAdviceFromAI = require('./utils/getAdviceFromAi');
 setupAssociations()
 require('dotenv').config();
 
@@ -338,10 +339,20 @@ app.post('/emotions', async (req, res) => {
     const { userId, latitude, longitude, emotionName, description, city, amenity, type } = req.body;
 
     // Vérification de l'existence de l'utilisateur
-    const userExists = await User.findByPk(userId);
+    const userExists = await User.findByPk(userId, {
+      include: {
+        model: Lang, // Inclure la relation Lang
+      }
+    });
     if (!userExists) {
       return res.status(400).json({ error: 'User not found' });
     }
+    
+    // Récupérer la langue de l'utilisateur depuis la base de données
+    if (!userExists.Lang || !userExists.Lang.code) {
+      return res.status(400).json({ error: 'User language not found' });
+    }
+    const userLang = userExists.Lang.code;
 
     // Création immédiate de l'émotion avec des données de base
     const emotion = await Emotion.create({
@@ -353,7 +364,8 @@ app.post('/emotions', async (req, res) => {
       city,
       amenity,
       type,
-      aiResponse: null // Temporairement null
+      aiResponse: null,
+      advice: null
     });
 
     // Répondre immédiatement au client
@@ -362,16 +374,16 @@ app.post('/emotions', async (req, res) => {
     // Traitement asynchrone post-réponse
     (async () => {
       try {
-        // Appel à l'IA pour générer la réponse
+          // Appel à l'IA pour générer la réponse
         const aiResponse = await callAiMatrix(description, client);
 
-        // Mettre à jour l'émotion avec la réponse AI
+          // Mettre à jour l'émotion avec la réponse AI
         await Emotion.update(
           { aiResponse: aiResponse },
           { where: { id: emotion.id } }
         );
 
-        // Traitement des traits
+       // Traitement des traits (comme avant)
         const traitTypes = ['health', 'social', 'personality', 'interests', 'brands_mentionned'];
         const emotionHasTraitsData = [];
 
@@ -381,18 +393,17 @@ app.post('/emotions', async (req, res) => {
           if (traitTypeRecord && aiResponse[traitType]) {
             const traitsPromises = Object.entries(aiResponse[traitType]).map(async ([name, score]) => {
               try {
-                // Trouver ou créer le trait
-                let trait = await Traits.findOne({
-                  where: { name, typeId: traitTypeRecord.id }
-                });
-
-                if (!trait) {
-                  trait = await Traits.create({
+                // Utiliser findOrCreate pour trouver ou créer le trait en une seule opération
+                const [trait] = await Traits.findOrCreate({
+                  where: { 
+                    name
+                  },
+                  defaults: {
                     name,
                     typeId: traitTypeRecord.id
-                  });
-                }
-
+                  }
+                });
+              
                 // Ajouter les associations dans le tableau
                 emotionHasTraitsData.push({
                   emotion_id: emotion.id,
@@ -415,7 +426,7 @@ app.post('/emotions', async (req, res) => {
           });
         }
 
-        // Traduction des traits
+         // Traduction des traits
         const allTraitIds = emotionHasTraitsData.map(item => item.traits_id);
         const traitsToTranslate = await Traits.findAll({
           where: { id: allTraitIds },
@@ -430,9 +441,9 @@ app.post('/emotions', async (req, res) => {
 
               if (translatedName) {
                 await TraitsHasLang.findOrCreate({
-                  where: { 
-                    traits_id: trait.id, 
-                    lang_id: lang.id 
+                  where: {
+                    traits_id: trait.id,
+                    lang_id: lang.id
                   },
                   defaults: {
                     traits_id: trait.id,
@@ -447,8 +458,13 @@ app.post('/emotions', async (req, res) => {
           }
         });
 
-        await Promise.all(translationPromises);
+          await Promise.all(translationPromises);
 
+          // Appel à la fonction getAdviceFromAI et mise à jour de l'émotion
+        const advice = await getAdviceFromAI(description, client, userLang); // Passer userLang depuis userExists.Lang.code
+        if (advice) {
+          await Emotion.update({ advice: advice }, { where: { id: emotion.id } });
+        }
       } catch (processError) {
         console.error('Post-response processing error:', processError);
       }
@@ -537,9 +553,9 @@ app.get('/testemo', async (req, res) => {
 
     // Récupérer les noms des traits à partir du champ 'aiResponse' de l'émotion
     const bestTraits = emotion.aiResponse?.best || [];
-    
+
     if (!Array.isArray(bestTraits) || bestTraits.length === 0) {
-       return res.json({ traits: [] });
+      return res.json({ traits: [] });
     }
 
     // Récupérer les traits correspondants et leurs scores
@@ -550,7 +566,7 @@ app.get('/testemo', async (req, res) => {
       include: [
         {
           model: EmotionHasTraits, // Utilisation de EmotionHasTrait
-          as: 'EmotionHasTraits', 
+          as: 'EmotionHasTraits',
           where: { emotion_id: emotionId },
           attributes: ['score'],
         },
@@ -564,24 +580,24 @@ app.get('/testemo', async (req, res) => {
 
     // Récupérer les traductions des traits pour la langue de l'utilisateur
     const translations = await TraitsHasLang.findAll({
-        where: {
-           lang_id: userLangId,
-           traits_id: traitIds
-        },
-        attributes: ['traits_id', 'name']
+      where: {
+        lang_id: userLangId,
+        traits_id: traitIds
+      },
+      attributes: ['traits_id', 'name']
     });
 
 
     // Mapper les traductions aux traits
     const translatedTraitsData = traitsData.map(trait => {
-        const translation = translations.find(t => t.traits_id === trait.id);
-        return {
-          id: trait.id,
-          name: trait.name,
-          translated_name: translation ? translation.name : trait.name,
-          score: trait.EmotionHasTraits ? trait.EmotionHasTraits[0].score : null
-        };
-      });
+      const translation = translations.find(t => t.traits_id === trait.id);
+      return {
+        id: trait.id,
+        name: trait.name,
+        translated_name: translation ? translation.name : trait.name,
+        score: trait.EmotionHasTraits ? trait.EmotionHasTraits[0].score : null
+      };
+    });
 
     // Retourner les traits avec leurs traductions
     res.json({ traits: translatedTraitsData });
@@ -625,53 +641,53 @@ app.get('/emotions/day', async (req, res) => {
 
     // Transformer les émotions avec les infos des traits
     const emotionsWithTraits = await Promise.all(emotions.map(async (emotion) => {
-      
-        const emotionData = emotion.get()
-        const bestTraits = emotion.aiResponse?.best || [];
+      const emotionData = emotion.get();
+      const bestTraits = emotion.aiResponse?.best || [];
+
+      let traits = [];
+
+        const traitsData = await Traits.findAll({
+          include: [
+            {
+              model: EmotionHasTraits,
+              as: 'EmotionHasTraits',
+              where: { emotion_id: emotion.id }, // Get All related traits with emotionId
+              attributes: ['score'],
+            },
+          ],
+        });
+        
+        const filteredTraits = traitsData.filter(trait => bestTraits.includes(trait.name)); // Filter by bestTraits
+
+        if(filteredTraits.length > 0) {
+          const traitIds = filteredTraits.map(trait => trait.id);
+          const translations = await TraitsHasLang.findAll({
+            where: {
+              lang_id: userLangId,
+              traits_id: traitIds
+            },
+              attributes: ['traits_id', 'name']
+          });
+
+            traits = filteredTraits.map(trait => {
+            const translation = translations.find(t => t.traits_id === trait.id);
+
+            return {
+            id: trait.id,
+            name: trait.name,
+            translated_name: translation ? translation.name : trait.name,
+            score: trait.EmotionHasTraits[0].score
+            };
+          });
+        }
 
 
-        let traits = [];
-        if(bestTraits && bestTraits.length > 0) {
-            const traitsData =  await Traits.findAll({
-                include: [
-                    {
-                       model: EmotionHasTraits,
-                       as: 'EmotionHasTraits',
-                       where: { emotion_id: emotion.id },
-                        attributes: ['score'],
-                     },
-                 ],
-                where: { name: bestTraits }
-              });
-
-             const traitIds = traitsData.map(trait => trait.id);
-                
-             const translations = await TraitsHasLang.findAll({
-                 where: {
-                     lang_id: userLangId,
-                     traits_id: traitIds
-                  },
-                attributes: ['traits_id', 'name']
-              });
-
-
-              traits = traitsData.map(trait => {
-                 const translation = translations.find(t => t.traits_id === trait.id);
-                    return {
-                       id: trait.id,
-                       name: trait.name,
-                        translated_name: translation ? translation.name : trait.name,
-                      score: trait.EmotionHasTraits && trait.EmotionHasTraits.length > 0 ? trait.EmotionHasTraits[0].score : null
-                    };
-                });
-           }
-
-           return {
-               ...emotionData,
-               traits: traits
-           }
+      return {
+        ...emotionData,
+        traits: traits
+      };
     }));
-       
+
 
     // Retourner les émotions avec leurs traits
     res.json(emotionsWithTraits);
@@ -684,7 +700,8 @@ app.get('/emotions/day', async (req, res) => {
 // Synchronisation des modèles avec la base de données
 sequelize.sync({
   // force: true,
-  alter: true
+  alter: true,
+  logging: false
 }).then(() => {
   app.listen(3055, () => {
     console.log('Server is running on port 3055');

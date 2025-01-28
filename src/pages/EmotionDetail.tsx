@@ -7,97 +7,116 @@ import { useEmotion } from '../contexts/EmotionContext';
 import { emotions } from '../data/emotions';
 import './EmotionDetail.css'
 import { useTranslation } from 'react-i18next';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const EmotionDetail: React.FC = () => {
   function Search() {
     const { emotion, image, background, latitude, longitude } = useEmotion();
     const [emotionsList, setEmotionsList] = useState<any[]>([]);
     const [lastEmotion, setLastEmotion] = useState<any>(null);
-    const location = useLocation(); // Utilisation de useLocation pour récupérer les params de la requête
+    const [countdown, setCountdown] = useState<number>(5);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const location = useLocation();
     const { t } = useTranslation();
-    // Récupération de la date depuis l'URL
-    const date = new URLSearchParams(location.search).get('date'); // extraction du paramètre "date" dans l'URL
-
-    // Utilisation de useEffect pour recharger les données à chaque changement de "date"
-    useEffect(() => {
-      fetchEmotions();
-    }, [location.search]); // L'effet est déclenché à chaque changement d'URL (paramètre "date")
+    const date = new URLSearchParams(location.search).get('date');
 
     // Fonction pour récupérer les émotions
     const fetchEmotions = async () => {
       if (date) {
-        const userId = localStorage.getItem('userId'); // Récupérer l'ID utilisateur du localStorage
-
+        const userId = localStorage.getItem('userId');
         if (userId) {
           const fetchedEmotions = await getDailyEmotions(userId, date);
           setEmotionsList(fetchedEmotions);
 
-          // Trier les émotions par date et stocker la plus récente
           if (fetchedEmotions.length > 0) {
-            const sortedEmotions = [...fetchedEmotions].sort((a, b) => new Date(b.emotionDate).getTime() - new Date(a.emotionDate).getTime());
+            const sortedEmotions = [...fetchedEmotions].sort((a, b) => 
+              new Date(b.emotionDate).getTime() - new Date(a.emotionDate).getTime()
+            );
             setLastEmotion(sortedEmotions[0]);
           }
         }
       }
     };
 
-    // Appliquer le fond sur le body en fonction de la dernière émotion
+    // Effet pour gérer le compteur et le rechargement
+    useEffect(() => {
+      if (emotionsList.length > 0 && !emotionsList[0].advice) {
+        setIsLoading(true);
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              fetchEmotions(); // Recharge les données quand le compteur atteint 0
+              setCountdown(5); // Réinitialise le compteur
+              return 5;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        return () => {
+          clearInterval(timer);
+          setIsLoading(false);
+        };
+      }
+    }, [emotionsList]);
+
+    // Effet initial pour charger les données
+    useEffect(() => {
+      fetchEmotions();
+    }, [location.search]);
+
+    // Effet pour le background
     useEffect(() => {
       if (lastEmotion) {
         const emotionData = emotions.find(e => e.name === lastEmotion.emotionName);
         if (emotionData) {
-          document.body.style.background = emotionData.background; // Applique le fond
+          document.body.style.background = emotionData.background;
         }
       }
-
-      // Nettoyage du background lorsque le composant est démonté
       return () => {
-        document.body.style.background = ''; // Réinitialise le background
+        document.body.style.background = '';
       };
     }, [lastEmotion]);
 
-    // Trouver l'image statique correspondante à l'émotion
+    // Vos fonctions helpers existantes
     const getStaticImage = (emotionName: string) => {
       const emotionData = emotions.find((emo) => emo.name === emotionName);
       return emotionData ? emotionData.imageStatic : '';
     };
-    // Fonction pour obtenir le jour de la semaine traduit
+
     const getTranslatedWeekday = (date: Date, t: any) => {
       const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
       const weekday = weekdays[date.getDay()];
       return t(`days.${weekday}`);
     };
 
-    // Fonction pour obtenir le mois traduit
     const getTranslatedMonth = (date: Date, t: any) => {
       const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
       const month = months[date.getMonth()];
       return t(`months.${month}`);
     };
 
-    // Fonction pour formater la date en utilisant les traductions
     const formatDate = (dateString: string, t: any) => {
       const dateObject = new Date(dateString);
       const day = dateObject.getDate();
       const translatedWeekday = getTranslatedWeekday(dateObject, t);
       const translatedMonth = getTranslatedMonth(dateObject, t);
-
       return `${translatedWeekday} ${day} ${translatedMonth}`;
     };
 
-    // Fonction pour formater la date avec l'heure
     const formatDateWithTime = (dateString: string) => {
       const dateObject = new Date(dateString);
       const hours = dateObject.getHours().toString().padStart(2, '0');
       const minutes = dateObject.getMinutes().toString().padStart(2, '0');
-
       return `${hours}h${minutes}`;
     };
+
     return (
       <div>
         {date && (
           <div className="selected-date">
-        <h2>{formatDate(date, t)}</h2>
+            <h2>{formatDate(date, t)}</h2>
           </div>
         )}
 
@@ -108,17 +127,60 @@ const EmotionDetail: React.FC = () => {
                 <div className='emoji-date'>
                   <div className='container-content-emotion-title'>
                     <img src={getStaticImage(emotion.emotionName)} alt={emotion.emotionName} className='img-emotion' />
-
                     <div className='container-place-type'>
                       <img src={`/images/places/${emotion.placeTypeId}.svg`} className='place-type' />
                     </div>
-
                   </div>
                   <p className="date">
                     {formatDateWithTime(emotion.emotionDate)} {t('à')} {emotion.city || 'Lieu inconnu'}{emotion.amenity ? ', ' + emotion.amenity : ''}
                   </p>
                 </div>
-                <p className="description">{emotion.description}                </p>
+                <p className="description">{emotion.description}</p>
+                {emotion.traits && emotion.traits.length > 0 && (
+                  <div className="traits-container">
+                    <div className="traits-list">
+                      {[...emotion.traits].sort((a, b) => b.score - a.score).map((trait: any) => {
+                        let displayScore = '';
+                        let traitClass = '';
+
+                        if (trait.score === -1) {
+                          displayScore = '-1';
+                          traitClass = 'trait-negatif';
+                        } else if (trait.score === 1) {
+                          displayScore = '+1';
+                          traitClass = 'trait-positif';
+                        }
+
+                        if (displayScore !== '') {
+                          return (
+                            <div key={trait.id} className={`trait-item ${traitClass}`}>
+                              <span className="trait-name">{trait.translated_name}</span>
+                              <span className="trait-score">{displayScore}</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {emotion.advice && emotion.advice.length > 0 ? (
+                  <div className="advice">
+                    <img src="/feellogo.svg" alt="Feel Logo" className="advice-logo" />
+                    <p className="advice-content">
+                      {emotion.advice}
+                    </p>
+                  </div>
+                ) : emotion === emotionsList[0] && ( // Vérifie si c'est la première émotion
+                  <div className='animation-container'>
+                    <DotLottieReact src='cook.json' loop autoplay className='cook-animation' />
+                    <p className='analyse-progr'>
+                      Analyse en cours ({countdown}s)
+                    </p>
+                  </div>
+                  
+                )}
               </div>
             </div>
           ))}

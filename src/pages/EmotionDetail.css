@@ -71,8 +71,8 @@ html {
     min-height: 130px;
   }
 
-  .emotion-detail-container img {
-    width: 38px;
+  .img-emotion  {
+    width: 48px;
   }
 
   .emotion-detail-container .date {
@@ -108,7 +108,8 @@ ion-content {
 .emotion-detail-container {
   margin: 15px;
   background-color: white;
-  box-shadow: 2px 6px 0 0 #e9e9e9;
+  /* box-shadow: 2px 6px 0 0 #e9e9e9; */
+  box-shadow: 1px 10px 20px 0px #d4d4d4;
   padding: 15px;
   border-radius: 16px;
 }
@@ -116,6 +117,8 @@ ion-content {
 .content .date {
   font-size: 14px;
   font-weight: bold;
+  margin-top: 0px;
+  padding-left: 5px;
 }
 
 .selected-date {
@@ -146,4 +149,85 @@ ion-content {
 h2 {
   padding-left: 0;
   text-align: center;
+}
+
+.trait-name {
+  text-transform: capitalize;
+}
+
+.traits-container {
+  display: flex;
+  font-size: 12px;
+  flex-direction: column;
+}
+
+.trait-item {
+  display: flex;
+  justify-content: space-between;
+  color: #a2a2a2;
+  font-weight: 600;
+}
+
+
+
+.trait-positif {
+  color: #3cb05b;
+  font-weight: 600;
+}
+
+.trait-positif .trait-score {
+  color: #3cb05b;
+  font-size: 16px;
+}
+
+.trait-score {
+  font-size: 16px;
+}
+
+.advice-content {
+  background-color: #f6f6f6;
+  border-radius: 16px;
+  padding: 10px;
+  text-indent: 20px;
+}
+
+.advice {
+  display: flex;
+  gap: 15px;
+  /* background-color: #efefef; */
+  position: relative;
+}
+
+.advice-logo {
+  width: 35px;
+  position: absolute;
+  top: 9px;
+  left: -11px;
+}
+
+.cook-animation {
+  width: 90px;
+  height: auto;
+}
+
+.animation-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  justify-content: center;
+}
+
+.analyse-progress {
+  font-size: 12px;
+  color: grey;
+  position: relative;
+  left: -24px;
+}
+
+.analyse-progr {
+  color: grey;
+  left: -28px;
+  position: relative;
+  font-size: 12px;
 }

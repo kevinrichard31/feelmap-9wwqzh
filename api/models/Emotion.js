@@ -1,82 +1,84 @@
-// models/Emotion.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const User = require('./User');
-const PlaceType = require('./PlaceType');  // Importer le modèle PlaceType
+const PlaceType = require('./PlaceType');
 
 const Emotion = sequelize.define('Emotion', {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  userId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: User,
-      key: 'id',
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
     },
-  },
-  latitude: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-  },
-  longitude: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-  },
-  emotionName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-    validate: {
-      len: [0, 10000], // Limite la longueur entre 0 et 10 000 caractères
-    }
-  },
-  emotionDate: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-  },
-  city: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  amenity: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  type: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  placeTypeId: {  // Nouvelle clé étrangère pour lier à PlaceType
-    type: DataTypes.INTEGER,
-    references: {
-      model: PlaceType,
-      key: 'id',
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: User,
+            key: 'id',
+        },
     },
-    allowNull: true
-  },
-  placeTypeOther: {  // Champ supplémentaire pour un type de lieu personnalisé
-    type: DataTypes.STRING,
-    allowNull: true,  // Peut être nul si l'utilisateur ne remplit pas ce champ
-  },
-  aiResponse: {  // Nouveau champ pour stocker la réponse JSON de l'IA
-    type: DataTypes.JSONB,  // Utilisation du type JSONB pour plus de flexibilité
-    allowNull: true,
-  },
+    latitude: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+    },
+    longitude: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+    },
+    emotionName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        validate: {
+            len: [0, 10000],
+        }
+    },
+    emotionDate: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+    },
+    city: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    amenity: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    type: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    placeTypeId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: PlaceType,
+            key: 'id',
+        },
+        allowNull: true
+    },
+    placeTypeOther: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    aiResponse: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+    },
+    advice: {  // Nouvelle colonne pour l'avis
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
 }, {
-  tableName: 'emotions',
-  timestamps: false,
+    tableName: 'emotions',
+    timestamps: false,
 });
 
-// Relations
 Emotion.belongsTo(User, { foreignKey: 'userId' });
-Emotion.belongsTo(PlaceType, { foreignKey: 'placeTypeId' });  // Relation avec PlaceType
+Emotion.belongsTo(PlaceType, { foreignKey: 'placeTypeId' });
 
 module.exports = Emotion;

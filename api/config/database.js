@@ -13,7 +13,8 @@ const sequelize = new Sequelize(
     define: {
       charset: 'utf8', // PostgreSQL utilise un encodage UTF-8 par défaut
       collate: 'utf8_unicode_ci', // Cela peut être ignoré pour PostgreSQL
-    }
+    },
+    logging: false
   }
 
   
