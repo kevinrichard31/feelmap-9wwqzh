@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { getDailyEmotions } from '../utils/api';
 import { useEmotion } from '../contexts/EmotionContext';
 import { emotions } from '../data/emotions';
-import './EmotionDetail.css'
+import './EmotionDetail.css';
 import { useTranslation } from 'react-i18next';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
@@ -29,7 +29,7 @@ const EmotionDetail: React.FC = () => {
           setEmotionsList(fetchedEmotions);
 
           if (fetchedEmotions.length > 0) {
-            const sortedEmotions = [...fetchedEmotions].sort((a, b) => 
+            const sortedEmotions = [...fetchedEmotions].sort((a, b) =>
               new Date(b.emotionDate).getTime() - new Date(a.emotionDate).getTime()
             );
             setLastEmotion(sortedEmotions[0]);
@@ -112,82 +112,82 @@ const EmotionDetail: React.FC = () => {
       return `${hours}h${minutes}`;
     };
 
-    return (
-      <div>
-        {date && (
-          <div className="selected-date">
-            <h2>{formatDate(date, t)}</h2>
-          </div>
-        )}
-
-        <div>
-          {emotionsList.map((emotion: any) => (
-            <div key={emotion.id} className="emotion-detail-container">
-              <div className="content">
-                <div className='emoji-date'>
-                  <div className='container-content-emotion-title'>
-                    <img src={getStaticImage(emotion.emotionName)} alt={emotion.emotionName} className='img-emotion' />
-                    <div className='container-place-type'>
-                      <img src={`/images/places/${emotion.placeTypeId}.svg`} className='place-type' />
-                    </div>
-                  </div>
-                  <p className="date">
-                    {formatDateWithTime(emotion.emotionDate)} {t('à')} {emotion.city || 'Lieu inconnu'}{emotion.amenity ? ', ' + emotion.amenity : ''}
-                  </p>
-                </div>
-                <p className="description">{emotion.description}</p>
-                {emotion.traits && emotion.traits.length > 0 && (
-                  <div className="traits-container">
-                    <div className="traits-list">
-                      {[...emotion.traits].sort((a, b) => b.score - a.score).map((trait: any) => {
-                        let displayScore = '';
-                        let traitClass = '';
-
-                        if (trait.score === -1) {
-                          displayScore = '-1';
-                          traitClass = 'trait-negatif';
-                        } else if (trait.score === 1) {
-                          displayScore = '+1';
-                          traitClass = 'trait-positif';
-                        }
-
-                        if (displayScore !== '') {
-                          return (
-                            <div key={trait.id} className={`trait-item ${traitClass}`}>
-                              <span className="trait-name">{trait.translated_name}</span>
-                              <span className="trait-score">{displayScore}</span>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {emotion.advice && emotion.advice.length > 0 ? (
-                  <div className="advice">
-                    <img src="/feellogo.svg" alt="Feel Logo" className="advice-logo" />
-                    <p className="advice-content">
-                      {emotion.advice}
-                    </p>
-                  </div>
-                ) : emotion === emotionsList[0] && ( // Vérifie si c'est la première émotion
-                  <div className='animation-container'>
-                    <DotLottieReact src='cook.json' loop autoplay className='cook-animation' />
-                    <p className='analyse-progr'>
-                      Analyse en cours ({countdown}s)
-                    </p>
-                  </div>
-                  
-                )}
+      return (
+          <div>
+            {date && (
+              <div className="selected-date">
+                <h2>{formatDate(date, t)}</h2>
               </div>
+            )}
+
+            <div>
+              {emotionsList.map((emotion: any, index: number) => (
+                <div key={emotion.id} className={`emotion-detail-container emotion-detail-container-fade-in`} style={{ animationDelay: `${index * 0.2}s` }}>
+                  <div className="content">
+                    <div className='emoji-date'>
+                      <div className='container-content-emotion-title'>
+                        <img src={getStaticImage(emotion.emotionName)} alt={emotion.emotionName} className='img-emotion' />
+                        <div className='container-place-type'>
+                          <img src={`/images/places/${emotion.placeTypeId}.svg`} className='place-type' />
+                        </div>
+                      </div>
+                      <p className="date">
+                        {formatDateWithTime(emotion.emotionDate)} {t('à')} {emotion.city || 'Lieu inconnu'}{emotion.amenity ? ', ' + emotion.amenity : ''}
+                      </p>
+                    </div>
+                    <p className="description">{emotion.description}</p>
+                    {emotion.traits && emotion.traits.length > 0 && (
+                      <div className="traits-container">
+                        <div className="traits-list">
+                          {[...emotion.traits].sort((a, b) => b.score - a.score).map((trait: any, traitIndex: number) => {
+                            let displayScore = '';
+                            let traitClass = '';
+
+                            if (trait.score === -1) {
+                              displayScore = '-1';
+                              traitClass = 'trait-negatif';
+                            } else if (trait.score === 1) {
+                              displayScore = '+1';
+                              traitClass = 'trait-positif';
+                            }
+
+                            if (displayScore !== '') {
+                              return (
+                                <div key={trait.id} className={`trait-item ${traitClass} trait-item-fade-in`} style={{animationDelay: `${traitIndex * 0.1}s`}}>
+                                  <span className="trait-name">{trait.translated_name}</span>
+                                  <span className="trait-score">{displayScore}</span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {emotion.advice && emotion.advice.length > 0 ? (
+                      <div className="advice advice-fade-in">
+                        <img src="/feellogo.svg" alt="Feel Logo" className="advice-logo" />
+                        <p className="advice-content">
+                          {emotion.advice}
+                        </p>
+                      </div>
+                    ) : emotion === emotionsList[0] && ( // Vérifie si c'est la première émotion
+                      <div className='animation-container'>
+                        <DotLottieReact src='cook.json' loop autoplay className='cook-animation' />
+                        <p className='analyse-progr'>
+                          Analyse en cours ({countdown}s)
+                        </p>
+                      </div>
+
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+          </div>
+        );
+      }
 
   return (
     <IonPage>

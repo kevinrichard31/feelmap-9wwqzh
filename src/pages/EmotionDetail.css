@@ -231,3 +231,35 @@ h2 {
   position: relative;
   font-size: 12px;
 }
+
+.emotion-detail-container-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+.traits-container-fade-in {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-in-out 0.2s forwards;
+}
+
+.trait-item-fade-in {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.advice-fade-in {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-in-out 0.2s forwards;
+}
+
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

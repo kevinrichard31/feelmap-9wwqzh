@@ -427,36 +427,52 @@ app.post('/emotions', async (req, res) => {
         }
 
          // Traduction des traits
-        const allTraitIds = emotionHasTraitsData.map(item => item.traits_id);
-        const traitsToTranslate = await Traits.findAll({
-          where: { id: allTraitIds },
-        });
+         const allTraitIds = emotionHasTraitsData.map(item => item.traits_id);
 
-        const translationPromises = traitsToTranslate.map(async (trait) => {
-          const translationResults = await translateTrait(trait.name, client, Lang);
-
-          if (translationResults && translationResults.translations) {
-            const langPromises = translationResults.allLangs.map(async (lang) => {
-              const translatedName = translationResults.translations[lang.code];
-
-              if (translatedName) {
-                await TraitsHasLang.findOrCreate({
-                  where: {
-                    traits_id: trait.id,
-                    lang_id: lang.id
-                  },
-                  defaults: {
-                    traits_id: trait.id,
-                    lang_id: lang.id,
-                    name: translatedName,
-                  }
-                });
-              }
-            });
-
-            await Promise.all(langPromises);
-          }
-        });
+         // D'abord, trouver les traits qui n'ont aucune traduction
+         const traitsWithTranslations = await TraitsHasLang.findAll({
+           attributes: ['traits_id'],
+           where: { traits_id: allTraitIds },
+           group: ['traits_id']
+         });
+         
+         const translatedTraitIds = traitsWithTranslations.map(t => t.traits_id);
+         const untranslatedTraitIds = allTraitIds.filter(id => !translatedTraitIds.includes(id));
+         
+         // Si tous les traits sont déjà traduits, on arrête là
+         if (untranslatedTraitIds.length === 0) {
+           return;
+         }
+         
+         const traitsToTranslate = await Traits.findAll({
+           where: { id: untranslatedTraitIds },
+         });
+         
+         const translationPromises = traitsToTranslate.map(async (trait) => {
+           const translationResults = await translateTrait(trait.name, client, Lang);
+         
+           if (translationResults && translationResults.translations) {
+             const langPromises = translationResults.allLangs.map(async (lang) => {
+               const translatedName = translationResults.translations[lang.code];
+         
+               if (translatedName) {
+                 await TraitsHasLang.findOrCreate({
+                   where: {
+                     traits_id: trait.id,
+                     lang_id: lang.id
+                   },
+                   defaults: {
+                     traits_id: trait.id,
+                     lang_id: lang.id,
+                     name: translatedName,
+                   }
+                 });
+               }
+             });
+         
+             await Promise.all(langPromises);
+           }
+         });
 
           await Promise.all(translationPromises);
 

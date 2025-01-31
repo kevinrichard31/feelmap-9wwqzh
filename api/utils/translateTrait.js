@@ -1,5 +1,6 @@
 // translateTrait.js
 async function translateTrait(traitName, client, Lang) {
+    console.log(traitName)
     try {
         // Récupérer toutes les langues depuis la base de données
         const allLangs = await Lang.findAll();
