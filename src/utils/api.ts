@@ -301,3 +301,76 @@ export const getLastEmotion = async (userId: string, userPassword: string) => {
   }
 };
 
+
+export const getAggregatedScores = async (userId: string, timeRange: 'last_7_days' | 'this_month' | 'last_month' | 'last_3_months' | 'today' | 'all') => {
+  try {
+    let apiUrl = `${API_URL}/users/${userId}/aggregated-scores`;
+
+    switch (timeRange) {
+      case 'last_7_days':
+        apiUrl += '/last_7_days';
+        break;
+      case 'this_month':
+        apiUrl += '/this_month';
+        break;
+      case 'last_month':
+        apiUrl += '/last_month';
+        break;
+      case 'last_3_months':
+        apiUrl += '/last_3_months';
+        break;
+      case 'today':
+        apiUrl += '/today';
+        break;
+      case 'all':
+        apiUrl += '/all'; // You might need to adjust the backend to handle 'all' appropriately.  If it defaults to all, this case might not be necessary.
+        break;
+      default:
+        console.warn(`Invalid timeRange: ${timeRange}.  Fetching last 7 days by default.`);
+        apiUrl += '/last_7_days'; // Default to last 7 days if timeRange is invalid
+        break;
+    }
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch aggregated scores. Status: ${response.status}`);
+    }
+
+    return await response.json(); // Retourne les scores agrégés
+  } catch (error) {
+    console.error('Error fetching aggregated scores:', error);
+    return null; // Retourne null en cas d'erreur
+  }
+};
+
+export const getUserTraits = async (userId: string, timeRange?: TimeRangeKey) => {
+  try {
+    let apiUrl = `${API_URL}/users/${userId}/traits`;
+    if (timeRange) {
+      // Append timeRange as a query parameter
+      apiUrl += `?timeRange=${timeRange}`;
+    }
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user traits. Status: ${response.status}`);
+    }
+
+    return await response.json(); // Retourne les traits de l'utilisateur
+  } catch (error) {
+    console.error('Error fetching user traits:', error);
+    return null; // Retourne null en cas d'erreur
+  }
+};

@@ -1,16 +1,17 @@
 // app.js ou server.js
 const express = require('express');
+const _ = require('lodash');
 const cors = require('cors'); // Importer le middleware CORS
 const sequelize = require('./config/database');
 const User = require('./models/User'); // Modèle User
 
-
+const moment = require('moment');
 const Lang = require('./models/Lang'); // Modèle Lang
 const EmotionHasTraits = require('./models/EmotionHasTraits'); // Modèle EmotionHasTraits
 const Traits = require('./models/Traits'); // Modèle Traits
 const Emotion = require('./models/Emotion'); // Modèle Emotion
 const TraitsHasLang = require('./models/TraitsHasLang'); // Modèle TraitsHasLang
-const { Op, fn, col, literal, Sequelize } = require('sequelize');
+const { Op, fn, col, literal, Sequelize, QueryTypes } = require('sequelize');
 const PlaceType = require('./models/PlaceType');
 
 const OpenAI = require('openai');
@@ -87,7 +88,153 @@ app.get('/test', (req, res) => {
 });
 
 
+// Route pour récupérer tous les traits d'un utilisateur
+app.get('/users/:userId/traits', async (req, res) => {
+  const { userId } = req.params;
+  const { timeRange } = req.query;  // Get timeRange from query parameters
 
+  try {
+    // 1. Vérifier si l'utilisateur existe
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const userLangId = user.lang_id;
+
+    // Define whereClause for emotion date filtering
+    let emotionDateWhereClause = {};
+    switch (timeRange) {
+      case 'last_7_days':
+        emotionDateWhereClause.emotionDate = {
+          [Op.gte]: moment().subtract(7, 'days').toDate(),
+        };
+        break;
+      case 'this_month':
+        emotionDateWhereClause.emotionDate = {
+          [Op.gte]: moment().startOf('month').toDate(),
+        };
+        break;
+      case 'last_month':
+        emotionDateWhereClause.emotionDate = {
+          [Op.gte]: moment().subtract(1, 'months').startOf('month').toDate(),
+          [Op.lt]: moment().startOf('month').toDate(),
+        };
+        break;
+      case 'last_3_months':
+        emotionDateWhereClause.emotionDate = {
+          [Op.gte]: moment().subtract(3, 'months').startOf('month').toDate(),
+        };
+        break;
+      case 'today':
+        emotionDateWhereClause.emotionDate = {
+          [Op.gte]: moment().startOf('day').toDate(),
+          [Op.lt]: moment().endOf('day').toDate(),
+        };
+        break;
+      case 'all':
+        // No filtering, get all data
+        break;
+      default:
+        // Handle invalid timeRange (e.g., log an error, default to 'last_7_days', or return an error)
+        console.warn(`Invalid timeRange: ${timeRange}.  Returning all data.`);
+        // If you want to default to last 7 days, you can set the emotionDateWhereClause here.
+        // emotionDateWhereClause.emotionDate = {
+        //   [Op.gte]: moment().subtract(7, 'days').toDate(),
+        // };
+        break;
+    }
+
+
+    // 2. Récupérer toutes les émotions de l'utilisateur (seulement les IDs) WITH date filtering
+    const emotions = await Emotion.findAll({
+      where: { userId, ...emotionDateWhereClause },
+      attributes: ['id'],
+      raw: true,
+    });
+
+    // S'il n'y a pas d'émotions, on retourne un tableau vide
+    if (emotions.length === 0) {
+      return res.json({ traits: [] });
+    }
+    const emotionIds = emotions.map(emotion => emotion.id);
+
+    // 3. Récupérer toutes les associations entre émotions et traits pour cet utilisateur
+    const emotionHasTraits = await EmotionHasTraits.findAll({
+      where: { emotion_id: emotionIds },
+      attributes: ['traits_id', 'score'],
+      raw: true,
+    });
+
+    if (emotionHasTraits.length === 0) {
+      return res.json({ traits: [] });
+    }
+
+    // 4. Regrouper les scores par trait et les additionner
+    const aggregatedScores = new Map();
+    emotionHasTraits.forEach(item => {
+      const traitId = item.traits_id;
+      const score = item.score;
+
+      if (!aggregatedScores.has(traitId)) {
+        aggregatedScores.set(traitId, 0);
+      }
+
+      // Utilisation d'une valeur par defaut pour ne pas avoir de null si un score est null
+      aggregatedScores.set(traitId, aggregatedScores.get(traitId) + (score || 0));
+    });
+
+    // 5. Extraire tous les ids de traits concernés
+    const traitIds = Array.from(aggregatedScores.keys());
+
+
+    // 6. Récupérer les infos des traits avec le type
+    const traits = await Traits.findAll({
+      where: { id: traitIds },
+      include: [{
+        model: TraitsType,
+        attributes: ['name'],
+      }],
+      raw: true
+    });
+
+
+    // 7. Récupérer les traductions des traits pour la langue de l'utilisateur
+    const translations = await TraitsHasLang.findAll({
+      where: {
+        lang_id: userLangId,
+        traits_id: traitIds
+      },
+      attributes: ['traits_id', 'name'],
+      raw: true
+    });
+
+    // 8. Map pour facilement retrouver la trad
+    const translationMap = new Map();
+    translations.forEach(t => {
+      translationMap.set(t.traits_id, t.name);
+    });
+
+    // 9. Combiner les informations des traits, scores agrégés, traductions et le type
+    const translatedTraits = traits.map(trait => {
+      const translatedName = translationMap.get(trait.id);
+      const aggregatedScore = aggregatedScores.get(trait.id)
+
+      return {
+        id: trait.id,
+        name: trait.name,
+        translated_name: translatedName || trait.name,
+        score: aggregatedScore,
+        type: trait['TraitsType.name']
+      };
+    });
+
+    // 10. Retourner les traits traduits
+    res.json({ traits: translatedTraits });
+  } catch (error) {
+    console.error('Error fetching user traits:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Route pour créer un nouvel utilisateur
 app.post('/users', async (req, res) => {
@@ -288,6 +435,7 @@ app.post('/verify-password', async (req, res) => {
 
 // Route pour récupérer toutes les émotions d'un utilisateur avec authentification par id et password
 // Route pour récupérer toutes les émotions d'un utilisateur avec authentification par id et password
+
 app.get('/emotions/all', async (req, res) => {
   try {
     const { id, password } = req.query;
@@ -308,21 +456,79 @@ app.get('/emotions/all', async (req, res) => {
       return res.status(401).json({ error: 'Invalid user ID or password' });
     }
 
-    // Récupérer toutes les émotions de cet utilisateur avec un maximum de 100 résultats
-    const emotions = await Emotion.findAll({
-      where: {
-        userId: id,
-      },
-      order: [['emotionDate', 'DESC']], // Trier par date décroissante pour obtenir les plus récentes en premier
-      limit: 100, // Limiter le nombre de résultats à 100
-      raw: true
+    // Requête SQL pour récupérer les émotions dédupliquées
+    const query = `
+      WITH EmotionGroups AS (
+  SELECT 
+    e.id,
+    e."userId",
+    e.latitude,
+    e.longitude,
+    e."emotionName",
+    e.description,
+    e."emotionDate",
+    e.city,
+    e.amenity,
+    e.type,
+    e."placeTypeId",
+    e."placeTypeOther",
+    e."aiResponse",
+    e.advice,
+    (
+      SELECT MIN(e2.id)  -- ID minimum pour regrouper les émotions proches
+      FROM emotions e2
+      WHERE 
+        e2."userId" = e."userId"
+        AND ST_DWithin(
+          ST_MakePoint(e.longitude, e.latitude)::geography,
+          ST_MakePoint(e2.longitude, e2.latitude)::geography,
+          50  -- distance en mètres
+        )
+    ) AS group_id
+  FROM emotions e
+  WHERE 
+    e."userId" = :userId
+    AND e.latitude IS NOT NULL 
+    AND e.longitude IS NOT NULL
+),
+RankedEmotions AS (
+  SELECT *,
+    ROW_NUMBER() OVER (
+      PARTITION BY group_id  -- Sélectionne une seule émotion par groupe de 50m
+      ORDER BY "emotionDate" DESC  -- Prend la plus récente
+    ) as rn
+  FROM EmotionGroups
+)
+SELECT 
+  id,
+  "userId",
+  latitude,
+  longitude,
+  "emotionName",
+  description,
+  "emotionDate",
+  city,
+  amenity,
+  type,
+  "placeTypeId",
+  "placeTypeOther",
+  advice
+FROM RankedEmotions
+WHERE rn = 1
+ORDER BY "emotionDate" DESC
+LIMIT 100;
+
+    `;
+
+    const emotions = await sequelize.query(query, {
+      replacements: { userId: id },
+      type: QueryTypes.SELECT
     });
 
     if (emotions.length === 0) {
       return res.status(404).json({ message: 'No emotions found for this user' });
     }
 
-    // Retourner les émotions trouvées
     res.json(emotions);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -344,10 +550,11 @@ app.post('/emotions', async (req, res) => {
         model: Lang, // Inclure la relation Lang
       }
     });
+
     if (!userExists) {
       return res.status(400).json({ error: 'User not found' });
     }
-    
+
     // Récupérer la langue de l'utilisateur depuis la base de données
     if (!userExists.Lang || !userExists.Lang.code) {
       return res.status(400).json({ error: 'User language not found' });
@@ -374,16 +581,16 @@ app.post('/emotions', async (req, res) => {
     // Traitement asynchrone post-réponse
     (async () => {
       try {
-          // Appel à l'IA pour générer la réponse
+        // Appel à l'IA pour générer la réponse
         const aiResponse = await callAiMatrix(description, client);
 
-          // Mettre à jour l'émotion avec la réponse AI
+        // Mettre à jour l'émotion avec la réponse AI
         await Emotion.update(
           { aiResponse: aiResponse },
           { where: { id: emotion.id } }
         );
 
-       // Traitement des traits (comme avant)
+        // Traitement des traits (comme avant)
         const traitTypes = ['health', 'social', 'personality', 'interests', 'brands_mentionned'];
         const emotionHasTraitsData = [];
 
@@ -394,8 +601,8 @@ app.post('/emotions', async (req, res) => {
             const traitsPromises = Object.entries(aiResponse[traitType]).map(async ([name, score]) => {
               try {
                 // Utiliser findOrCreate pour trouver ou créer le trait en une seule opération
-                const [trait] = await Traits.findOrCreate({
-                  where: { 
+                const [trait, created] = await Traits.findOrCreate({
+                  where: {
                     name
                   },
                   defaults: {
@@ -403,83 +610,136 @@ app.post('/emotions', async (req, res) => {
                     typeId: traitTypeRecord.id
                   }
                 });
-              
+
                 // Ajouter les associations dans le tableau
                 emotionHasTraitsData.push({
                   emotion_id: emotion.id,
                   traits_id: trait.id,
                   score: score
                 });
+
+                if (created) {
+                  console.log(`Trait "${name}" created successfully.`);
+                } else {
+                  console.log(`Trait "${name}" found.`);
+                }
               } catch (traitError) {
                 console.error(`Error processing trait ${name}:`, traitError);
+                console.error(`Failed to create or find trait "${name}".`, traitError);
+                throw traitError; // Relancer l'erreur pour arrêter le processus si un trait échoue
               }
             });
 
-            await Promise.all(traitsPromises);
+            try {
+              await Promise.all(traitsPromises);
+            } catch (allTraitsError) {
+              console.error(`Error processing traits for type ${traitType}:`, allTraitsError);
+              return; // Arrêter le traitement des traits si une erreur se produit
+            }
           }
         }
 
         // Insérer toutes les associations en une seule fois
         if (emotionHasTraitsData.length > 0) {
-          await EmotionHasTraits.bulkCreate(emotionHasTraitsData, {
-            updateOnDuplicate: ['score']
-          });
+          const uniqueData = _.uniqBy(emotionHasTraitsData, item => `${item.emotion_id}-${item.traits_id}`);
+
+          try {
+            await EmotionHasTraits.bulkCreate(uniqueData, {
+              updateOnDuplicate: ['score']
+            });
+            console.log(`${uniqueData.length} EmotionHasTraits records created/updated successfully.`);
+          } catch (bulkCreateError) {
+            console.error('Error during EmotionHasTraits.bulkCreate:', bulkCreateError);
+            return; // Arrêter le processus si bulkCreate échoue
+          }
+        } else {
+          console.log('No EmotionHasTraits records to create.');
         }
 
-         // Traduction des traits
-         const allTraitIds = emotionHasTraitsData.map(item => item.traits_id);
+        // Traduction des traits
+        const allTraitIds = emotionHasTraitsData.map(item => item.traits_id);
 
-         // D'abord, trouver les traits qui n'ont aucune traduction
-         const traitsWithTranslations = await TraitsHasLang.findAll({
-           attributes: ['traits_id'],
-           where: { traits_id: allTraitIds },
-           group: ['traits_id']
-         });
-         
-         const translatedTraitIds = traitsWithTranslations.map(t => t.traits_id);
-         const untranslatedTraitIds = allTraitIds.filter(id => !translatedTraitIds.includes(id));
-         
-         // Si tous les traits sont déjà traduits, on arrête là
-         if (untranslatedTraitIds.length === 0) {
-           return;
-         }
-         
-         const traitsToTranslate = await Traits.findAll({
-           where: { id: untranslatedTraitIds },
-         });
-         
-         const translationPromises = traitsToTranslate.map(async (trait) => {
-           const translationResults = await translateTrait(trait.name, client, Lang);
-         
-           if (translationResults && translationResults.translations) {
-             const langPromises = translationResults.allLangs.map(async (lang) => {
-               const translatedName = translationResults.translations[lang.code];
-         
-               if (translatedName) {
-                 await TraitsHasLang.findOrCreate({
-                   where: {
-                     traits_id: trait.id,
-                     lang_id: lang.id
-                   },
-                   defaults: {
-                     traits_id: trait.id,
-                     lang_id: lang.id,
-                     name: translatedName,
-                   }
-                 });
-               }
-             });
-         
-             await Promise.all(langPromises);
-           }
-         });
+        // D'abord, trouver les traits qui n'ont aucune traduction
+        const traitsWithTranslations = await TraitsHasLang.findAll({
+          attributes: ['traits_id'],
+          where: { traits_id: allTraitIds },
+          group: ['traits_id']
+        });
 
-          await Promise.all(translationPromises);
+        const translatedTraitIds = traitsWithTranslations.map(t => t.traits_id);
+        const untranslatedTraitIds = allTraitIds.filter(id => !translatedTraitIds.includes(id));
 
-          // Appel à la fonction getAdviceFromAI et mise à jour de l'émotion
-        const advice = await getAdviceFromAI(description, client, userLang); // Passer userLang depuis userExists.Lang.code
-        if (advice) {
-          await Emotion.update({ advice: advice }, { where: { id: emotion.id } });
+        // Si tous les traits sont déjà traduits, on arrête là
+        if (untranslatedTraitIds.length === 0) {
+          console.log('All traits are already translated.');
+          //return;  On ne stoppe pas ici, on continue avec l'advice
+        } else {
+
+
+          const traitsToTranslate = await Traits.findAll({
+            where: { id: untranslatedTraitIds },
+          });
+
+          const translationPromises = traitsToTranslate.map(async (trait) => {
+            const translationResults = await translateTrait(trait.name, client, Lang);
+
+            if (translationResults && translationResults.translations) {
+              const langPromises = translationResults.allLangs.map(async (lang) => {
+                const translatedName = translationResults.translations[lang.code];
+
+                if (translatedName) {
+                  try {
+                    const [traitsHasLang, created] = await TraitsHasLang.findOrCreate({
+                      where: {
+                        traits_id: trait.id,
+                        lang_id: lang.id
+                      },
+                      defaults: {
+                        traits_id: trait.id,
+                        lang_id: lang.id,
+                        name: translatedName,
+                      }
+                    });
+                    if (created) {
+                      console.log(`Translation for trait "${trait.name}" in language "${lang.code}" created successfully.`);
+                    } else {
+                      console.log(`Translation for trait "${trait.name}" in language "${lang.code}" found.`);
+                    }
+
+                  } catch (translationError) {
+                    console.error(`Error translating trait "${trait.name}" to language "${lang.code}":`, translationError);
+                  }
+                }
+              });
+
+              try {
+                await Promise.all(langPromises);
+              } catch (allLangError) {
+                console.error(`Error processing language translations for trait "${trait.name}":`, allLangError);
+              }
+            }
+          });
+
+          try {
+            await Promise.all(translationPromises);
+          } catch (allTranslationsError) {
+            console.error('Error processing all translations:', allTranslationsError);
+          }
+        }
+
+        // Appel à la fonction getAdviceFromAI et mise à jour de l'émotion
+        try {
+          const advice = await getAdviceFromAI(description, client, userLang); // Passer userLang depuis userExists.Lang.code
+          console.log("🌱 - advice:", advice)
+
+          if (advice) {
+            await Emotion.update({ advice: advice }, { where: { id: emotion.id } });
+            console.log(`Advice updated successfully for emotion id ${emotion.id}.`);
+          } else {
+            console.log(`No advice received for emotion id ${emotion.id}.`);
+          }
+        } catch (adviceError) {
+          console.error('Error getting or updating advice:', adviceError);
         }
       } catch (processError) {
         console.error('Post-response processing error:', processError);
@@ -491,7 +751,6 @@ app.post('/emotions', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 
 app.get('/emotions', async (req, res) => {
@@ -662,40 +921,40 @@ app.get('/emotions/day', async (req, res) => {
 
       let traits = [];
 
-        const traitsData = await Traits.findAll({
-          include: [
-            {
-              model: EmotionHasTraits,
-              as: 'EmotionHasTraits',
-              where: { emotion_id: emotion.id }, // Get All related traits with emotionId
-              attributes: ['score'],
-            },
-          ],
+      const traitsData = await Traits.findAll({
+        include: [
+          {
+            model: EmotionHasTraits,
+            as: 'EmotionHasTraits',
+            where: { emotion_id: emotion.id }, // Get All related traits with emotionId
+            attributes: ['score'],
+          },
+        ],
+      });
+
+      const filteredTraits = traitsData.filter(trait => bestTraits.includes(trait.name)); // Filter by bestTraits
+
+      if (filteredTraits.length > 0) {
+        const traitIds = filteredTraits.map(trait => trait.id);
+        const translations = await TraitsHasLang.findAll({
+          where: {
+            lang_id: userLangId,
+            traits_id: traitIds
+          },
+          attributes: ['traits_id', 'name']
         });
-        
-        const filteredTraits = traitsData.filter(trait => bestTraits.includes(trait.name)); // Filter by bestTraits
 
-        if(filteredTraits.length > 0) {
-          const traitIds = filteredTraits.map(trait => trait.id);
-          const translations = await TraitsHasLang.findAll({
-            where: {
-              lang_id: userLangId,
-              traits_id: traitIds
-            },
-              attributes: ['traits_id', 'name']
-          });
+        traits = filteredTraits.map(trait => {
+          const translation = translations.find(t => t.traits_id === trait.id);
 
-            traits = filteredTraits.map(trait => {
-            const translation = translations.find(t => t.traits_id === trait.id);
-
-            return {
+          return {
             id: trait.id,
             name: trait.name,
             translated_name: translation ? translation.name : trait.name,
             score: trait.EmotionHasTraits[0].score
-            };
-          });
-        }
+          };
+        });
+      }
 
 
       return {
@@ -713,6 +972,120 @@ app.get('/emotions/day', async (req, res) => {
   }
 });
 
+// Nouvelle route pour récupérer les scores agrégés d'un utilisateur
+// Nouvelle route pour récupérer les sommes des scores d'un utilisateur
+app.get('/users/:userId/aggregated-scores/:timeRange', async (req, res) => {
+  const { userId, timeRange } = req.params; // Extract userId and timeRange from path parameters
+  let startTime = process.hrtime.bigint();
+  let endTime;
+
+  try {
+    // 1. Vérifier si l'utilisateur existe
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let whereClause = { userId };
+
+    // 2. Construct WHERE clause based on timeRange
+    switch (timeRange) {
+      case 'last_7_days':
+        whereClause.emotionDate = {
+          [Op.gte]: moment().subtract(7, 'days').toDate(),
+        };
+        break;
+      case 'this_month':
+        whereClause.emotionDate = {
+          [Op.gte]: moment().startOf('month').toDate(),
+        };
+        break;
+      case 'last_month':
+        whereClause.emotionDate = {
+          [Op.gte]: moment().subtract(1, 'months').startOf('month').toDate(),
+          [Op.lt]: moment().startOf('month').toDate(),
+        };
+        break;
+      case 'last_3_months':
+        whereClause.emotionDate = {
+          [Op.gte]: moment().subtract(3, 'months').startOf('month').toDate(),
+        };
+        break;
+      case 'today':
+        whereClause.emotionDate = {
+          [Op.gte]: moment().startOf('day').toDate(),
+          [Op.lt]: moment().endOf('day').toDate(),
+        };
+        break;
+      case 'all':
+        // No filtering, get all data
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid time range specified' });
+    }
+
+    // 3. Utiliser la fonction SUM avec CAST pour convertir les valeurs JSON en nombres
+    const result = await Emotion.findOne({
+      where: whereClause,
+      attributes: [
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'health_score\' AS FLOAT)')
+        ), 0), 'health_score'],
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'mental_score\' AS FLOAT)')
+        ), 0), 'mental_score'],
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'physical_score\' AS FLOAT)')
+        ), 0), 'physical_score'],
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'nutrition_score\' AS FLOAT)')
+        ), 0), 'nutrition_score'],
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'relaxation_score\' AS FLOAT)')
+        ), 0), 'relaxation_score'],
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'couple_love_score\' AS FLOAT)')
+        ), 0), 'couple_love_score'],
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'best_friends_score\' AS FLOAT)')
+        ), 0), 'best_friends_score'],
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'family_only_score\' AS FLOAT)')
+        ), 0), 'family_only_score'],
+        [fn('COALESCE', fn('SUM',
+          literal('CAST("aiResponse"->\'workmate_score\' AS FLOAT)')
+        ), 0), 'workmate_score'],
+        [fn('COUNT', literal('*')), 'total_emotions']
+      ],
+      raw: true,
+      logging: (sql) => {
+        endTime = process.hrtime.bigint();
+      },
+      logQueryParameters: true
+    });
+
+    // Calculer le temps en millisecondes avec 3 décimales
+    const executionTime = Number(endTime - startTime) / 1_000_000;
+
+    // 4. Retourner les sommes des scores avec le temps d'exécution
+    res.json({
+      health_score: parseFloat(result.health_score),
+      mental_score: parseFloat(result.mental_score),
+      physical_score: parseFloat(result.physical_score),
+      nutrition_score: parseFloat(result.nutrition_score),
+      relaxation_score: parseFloat(result.relaxation_score),
+      couple_love_score: parseFloat(result.couple_love_score),
+      best_friends_score: parseFloat(result.best_friends_score),
+      family_only_score: parseFloat(result.family_only_score),
+      workmate_score: parseFloat(result.workmate_score),
+      total_emotions: parseInt(result.total_emotions),
+      query_time_ms: executionTime.toFixed(3),
+    });
+  } catch (error) {
+    console.error('Error fetching and aggregating user scores:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 // Synchronisation des modèles avec la base de données
 sequelize.sync({
   // force: true,

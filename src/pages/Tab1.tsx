@@ -92,7 +92,6 @@ const Tab1: React.FC = () => {
         icon: customIcon,
       })
         .addTo(mapInstance)
-        .bindPopup('You are here')
         .openPopup();
 
       // Sauvegarde la référence de la carte

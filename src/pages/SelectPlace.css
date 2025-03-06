@@ -59,7 +59,7 @@ padding: 30px;
 .describe .button-next {
     /* border-radius: 13px; */
     font-size: 16px;
-    font-family: "Agrandir"!important;
+    font-family: "'Agrandir regular'"!important;
     font-weight: bold;
     color: black;
     --background: #FFCC00;

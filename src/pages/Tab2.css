@@ -84,3 +84,7 @@ html {
   .emotion-icon {
     max-width: 45px;
   }
+
+  .day-number {
+    font-family: "'Agrandir'";
+  }

@@ -1,0 +1,41 @@
+.progress-container {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  background-color: #e6e6e6;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  position: absolute;
+  height: 100%;
+  transition: width 0.6s ease-in-out;
+}
+
+.positive {
+  background-color: #4caf50; /* Vert */
+}
+
+.negative {
+  background-color: #707070; /* Rouge */
+}
+
+.progress-container.negative-container { /* Class spécifique */
+  transform: rotateY(180deg);
+}
+
+.container-progress {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.progress-val {
+  font-size: 14px;
+  color: grey;
+  min-width: 35px;
+}

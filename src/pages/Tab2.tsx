@@ -120,20 +120,19 @@ const handleDayClick = (day: number) => {
 
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Calendrier des émotions</IonTitle>
-        </IonToolbar>
-      </IonHeader>
       <IonContent fullscreen>
         <div className="calendar-container">
           {/* Navigation entre les mois */}
           <div className="calendar-navigation">
-            <button onClick={() => changeMonth('previous')}>←</button>
+            <button onClick={() => changeMonth('previous')}>
+              <img src="/images/left.svg" alt="" />
+            </button>
             <span className="current-month">
               {monthNames[calendarDate.getMonth()]} {calendarDate.getFullYear()}
             </span>
-            <button onClick={() => changeMonth('next')}>→</button>
+            <button onClick={() => changeMonth('next')}>
+            <img src="/images/right.svg" alt="" />
+            </button>
           </div>
 
           {/* Affichage du calendrier */}

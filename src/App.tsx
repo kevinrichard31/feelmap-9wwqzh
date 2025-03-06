@@ -19,7 +19,8 @@ import { IonReactRouter } from '@ionic/react-router';
 import { ellipse, square, location, calendarNumber, settingsOutline, settings, people, personAdd, person, barChart, pieChart, analytics } from 'ionicons/icons';
 import Tab1 from './pages/Tab1';
 import Tab2 from './pages/Tab2';
-import Tab3 from './pages/Tab3';
+import Params from './pages/Params';
+import Stats from './pages/Stats'
 
 import './theme/variables.css';
 import './theme/global.css';
@@ -167,8 +168,8 @@ const App: React.FC = () => {
                 <Route exact path="/tab2">
                   <Tab2 />
                 </Route>
-                <Route path="/tab3">
-                  <Tab3 />
+                <Route path="/params">
+                  <Params />
                 </Route>
                 <Route path="/select">
                   <Select />
@@ -185,6 +186,9 @@ const App: React.FC = () => {
                 <Route exact path="/">
                   <Redirect to="/select" />
                 </Route>
+                <Route path="/stats">
+                  <Stats />
+                </Route>
               </IonRouterOutlet>
               <IonTabBar slot="bottom" className={isKeyboardVisible ? 'hidden' : ''}>
                 <IonTabButton tab="tab1" href="/tab1">
@@ -193,10 +197,10 @@ const App: React.FC = () => {
                 <IonTabButton tab="tab2" href="/tab2">
                   <IonIcon aria-hidden="true" icon={calendarNumber} />
                 </IonTabButton>
-                <IonTabButton tab="tab2" href="/tab2">
+                <IonTabButton tab="stats" href="/stats">
                   <IonIcon aria-hidden="true" icon={analytics} />
                 </IonTabButton>
-                <IonTabButton tab="tab3" href="/tab3">
+                <IonTabButton tab="params" href="/params">
                   <IonIcon aria-hidden="true" icon={settings} />
                 </IonTabButton>
                 <IonTabButton disabled>
