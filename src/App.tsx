@@ -44,6 +44,11 @@ import { Device } from '@capacitor/device';
 import { Keyboard } from '@capacitor/keyboard';
 import SelectPlace from './pages/SelectPlace';
 import i18n from './i18n';
+import Restoredata from './pages/Restoredata';
+import Erasedata from './pages/Erasedata';
+import Confidentialite from './pages/Confidentialite';
+import Utilisation from './pages/Utilisation';
+import Permission from './pages/Permission';
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -168,9 +173,27 @@ const App: React.FC = () => {
                 <Route exact path="/tab2">
                   <Tab2 />
                 </Route>
-                <Route path="/params">
+                <Route exact path="/params">
                   <Params />
                 </Route>
+                
+                <Route path="/params/confidentialite">
+                  <Confidentialite />
+                </Route>
+                <Route exact path="/params/utilisation">
+                  <Utilisation/>
+                </Route>
+                <Route exact path="/params/permission">
+                  <Permission/>
+                </Route>
+                
+                <Route path="/restoredata">
+                  <Restoredata />
+                </Route>
+                <Route path="/erasedata">
+                  <Erasedata />
+                </Route>
+
                 <Route path="/select">
                   <Select />
                 </Route>
@@ -213,7 +236,6 @@ const App: React.FC = () => {
           <IonRouterLink routerLink="/select" className={`tab3-button ${isKeyboardVisible ? 'hidden' : ''}`}>
             <IonFabButton
               className={`tab3-button ${isKeyboardVisible ? 'hidden' : ''}`}
-
               style={{ textDecoration: 'none' }}
             >
               <img src="/feellogo.svg" className="logo-button" alt="Logo" />

@@ -124,15 +124,15 @@ const handleDayClick = (day: number) => {
         <div className="calendar-container">
           {/* Navigation entre les mois */}
           <div className="calendar-navigation">
-            <button onClick={() => changeMonth('previous')}>
+            <div onClick={() => changeMonth('previous')}>
               <img src="/images/left.svg" alt="" />
-            </button>
+            </div>
             <span className="current-month">
               {monthNames[calendarDate.getMonth()]} {calendarDate.getFullYear()}
             </span>
-            <button onClick={() => changeMonth('next')}>
+            <div onClick={() => changeMonth('next')}>
             <img src="/images/right.svg" alt="" />
-            </button>
+            </div>
           </div>
 
           {/* Affichage du calendrier */}

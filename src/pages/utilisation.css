@@ -1,0 +1,84 @@
+.describe-title {
+    font-weight: bold;
+    margin-top: 30px;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.describe-title-little {
+    font-weight: bold;
+    margin-top: 30px;
+    font-size: 14px;
+}
+
+
+.describe-title2 {
+    font-size: 14px;
+    margin-top: 30px;
+}
+
+.feelmap-id {
+    font-weight: 800;
+    margin-top: 5px;
+}
+
+.container-id {
+    display: flex; flex-direction: column;
+}
+
+.container-id-copy {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.button-copy {
+    background-color: #FBDEB2;
+    font-size: 16px;
+    font-weight: bold;
+    width: fit-content;
+    padding: 10px 15px;
+    border-radius: 50px;
+    margin: 0 auto;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0px;
+    height: 30px;
+}
+
+.copy-message {
+    color: green;
+    font-size: 14px;
+}
+
+.input-id {
+    background-color: #F2F2F2;
+    border: none;
+    border-radius: 50px;
+    height: 46px;
+    width: 100%;
+    margin-top: 30px;
+    padding-left: 15px;
+    color: black;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.button-copy-left {
+    background-color: #FBDEB2;
+    font-size: 16px;
+    font-weight: bold;
+    width: fit-content;
+    padding: 10px 15px;
+    border-radius: 50px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0px;
+    height: 30px;
+    margin-top: 15px;
+}

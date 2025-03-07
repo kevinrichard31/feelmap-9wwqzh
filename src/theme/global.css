@@ -53,3 +53,10 @@
 .textarea {
   margin-bottom: 15px;
 }
+
+/* PARAMS COMPONENTS FORCE INPUT */
+
+
+button.item-native {
+  padding-left: 0px;
+}

@@ -1,6 +1,7 @@
 .describe-title {
     font-weight: bold;
-    margin-top: 30px;
+    margin-top: 15px;
+    margin-bottom: 15px;
     font-size: 16px;
 }
 
@@ -46,4 +47,25 @@
 .copy-message {
     color: green;
     font-size: 14px;
+}
+
+.back-img {
+    width: 30px;
+    padding: 15px;
+    box-sizing: content-box;
+    position: relative;
+    left: -15px;
+    top: 0px!important;
+}
+
+ion-content {
+    --background: #fff!important;
+}
+
+.go-to-params {
+    padding-left: none!important;
+}
+
+.item-native {
+    padding-left: 0px!important;
 }
