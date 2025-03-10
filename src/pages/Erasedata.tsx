@@ -17,6 +17,7 @@ import {
 } from '@ionic/react';
 import { arrowBackOutline, warningOutline } from 'ionicons/icons';
 import { deleteUserData } from '../utils/api'; // Adjust the path as needed
+import { useHistory } from 'react-router-dom'; // Correct import for Ionic
 
 const Erasedata: React.FC = () => {
   const router = useIonRouter();
@@ -25,6 +26,7 @@ const Erasedata: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState(false); // Control the alert
+  const history = useHistory();
 
   useEffect(() => {
     // Retrieve credentials from localStorage
@@ -66,16 +68,11 @@ const Erasedata: React.FC = () => {
 
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonButton slot="start" fill="clear" onClick={() => router.goBack()}>
-            <IonIcon icon={arrowBackOutline} />
-          </IonButton>
-          <IonTitle>Effacer mes données</IonTitle>
-        </IonToolbar>
-      </IonHeader>
       <IonContent fullscreen>
         <div style={{ padding: '15px' }}>
+        <img src="/images/back.svg" alt="Retour" onClick={() => history.goBack()} />
+        <div className='describe-title'>Effacer mes données</div><br />
+      
           <IonText>
             <p>Si vous procédez, vos données seront supprimées instantanément. Êtes-vous sûr de vouloir continuer ?</p>
           </IonText>

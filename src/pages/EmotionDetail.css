@@ -35,16 +35,13 @@ html {
   }
   
   .calendar-day {
-    padding: 10px 10px 0px 10px;
+    padding: 10px 6px 0px 6px;
     border-radius: 5px;
     text-align: center;
     font-weight: bold;
-    font-size: 15px;
+    font-size: 16px;
   }
-  
-  .calendar-day.no-emotion {
-    color: grey;
-  }
+
   
   .emotions-list {
     margin-top: 5px;

@@ -55,6 +55,7 @@ const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const router = useIonRouter();
+  const [activeTab, setActiveTab] = useState('tab1'); // Initialize with a default tab
 
   useEffect(() => {
     const initialize = async () => {
@@ -159,6 +160,9 @@ const App: React.FC = () => {
     setupKeyboardListeners();
   }, []);
 
+  const tabButtonStyle = (tabName: string) => ({
+    color: activeTab === tabName ? 'black' : '#A2A2A2',
+  });
 
   return (
     <EmotionProvider>
@@ -176,17 +180,17 @@ const App: React.FC = () => {
                 <Route exact path="/params">
                   <Params />
                 </Route>
-                
+
                 <Route path="/params/confidentialite">
                   <Confidentialite />
                 </Route>
                 <Route exact path="/params/utilisation">
-                  <Utilisation/>
+                  <Utilisation />
                 </Route>
                 <Route exact path="/params/permission">
-                  <Permission/>
+                  <Permission />
                 </Route>
-                
+
                 <Route path="/restoredata">
                   <Restoredata />
                 </Route>
@@ -214,16 +218,36 @@ const App: React.FC = () => {
                 </Route>
               </IonRouterOutlet>
               <IonTabBar slot="bottom" className={isKeyboardVisible ? 'hidden' : ''}>
-                <IonTabButton tab="tab1" href="/tab1">
+                <IonTabButton
+                  tab="tab1"
+                  href="/tab1"
+                  style={tabButtonStyle('tab1')}
+                  onClick={() => setActiveTab('tab1')}
+                >
                   <IonIcon aria-hidden="true" icon={location} />
                 </IonTabButton>
-                <IonTabButton tab="tab2" href="/tab2">
+                <IonTabButton
+                  tab="tab2"
+                  href="/tab2"
+                  style={tabButtonStyle('tab2')}
+                  onClick={() => setActiveTab('tab2')}
+                >
                   <IonIcon aria-hidden="true" icon={calendarNumber} />
                 </IonTabButton>
-                <IonTabButton tab="stats" href="/stats">
+                <IonTabButton
+                  tab="stats"
+                  href="/stats"
+                  style={tabButtonStyle('stats')}
+                  onClick={() => setActiveTab('stats')}
+                >
                   <IonIcon aria-hidden="true" icon={analytics} />
                 </IonTabButton>
-                <IonTabButton tab="params" href="/params">
+                <IonTabButton
+                  tab="params"
+                  href="/params"
+                  style={tabButtonStyle('params')}
+                  onClick={() => setActiveTab('params')}
+                >
                   <IonIcon aria-hidden="true" icon={settings} />
                 </IonTabButton>
                 <IonTabButton disabled>

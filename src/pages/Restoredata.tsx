@@ -16,7 +16,7 @@ import {
     useIonRouter
 } from '@ionic/react';
 import { arrowBackOutline } from 'ionicons/icons';
-//import { useHistory } from 'react-router-dom'; // Correct import for Ionic
+import { useHistory } from 'react-router-dom'; // Correct import for Ionic
 
 // Assuming verifyPassword is in a separate file (adjust the path)
 import { verifyPassword } from '../utils/api'; // Adjust path as needed
@@ -31,6 +31,7 @@ const Restoredata: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
     const [copyMessage, setCopyMessage] = useState<string | null>(null);
+    const history = useHistory();
 
     useEffect(() => {
         // Retrieve ID from localStorage on component mount
@@ -82,17 +83,12 @@ const Restoredata: React.FC = () => {
 
     return (
         <IonPage>
-            <IonHeader>
-                <IonToolbar>
-                    <IonButton slot="start" fill="clear" onClick={() => router.goBack()}>
-                        <img src="/images/back.svg" alt="Retour" className="back-img"/>
-                    </IonButton>
-                    <IonTitle>Récupérer mes données</IonTitle>
-                </IonToolbar>
-            </IonHeader>
+
             <IonContent fullscreen>
             
                 <div style={{ padding: '15px' }}>
+                <img src="/images/back.svg" alt="Retour" onClick={() => history.goBack()} />
+                <div className='describe-title'>Récupérer mes données</div><br />
                     <IonText>
                         <p>Entrez votre identifiant pour restaurer vos données. Une fois validé, vous retrouverez toutes vos informations sauvegardées.</p>
                     </IonText>

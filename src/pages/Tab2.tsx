@@ -1,10 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   IonContent,
-  IonHeader,
   IonPage,
-  IonTitle,
-  IonToolbar,
   useIonRouter,
   useIonViewWillEnter,
 } from '@ionic/react';
@@ -96,20 +93,14 @@ const Tab2: React.FC = () => {
     });
   };
 
-// Gestion des clics sur un jour
-// Gestion des clics sur un jour
-const handleDayClick = (day: number) => {
-  // Créer la date à partir de la date du calendrier
-  const selectedDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
-  console.log("🚀 ~ handleDayClick ~ selectedDate:", selectedDate);
+  // Gestion des clics sur un jour
+  const handleDayClick = (day: number) => {
+    const selectedDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
 
-  // Formater la date correctement en utilisant les méthodes locales
-  const formattedDate = `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}`;
-  console.log("🚀 ~ handleDayClick ~ formattedDate:", formattedDate);
+    const formattedDate = `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}`;
 
-  // Rediriger vers la page avec la nouvelle date formatée
-  router.push(`/emotiondetail?date=${formattedDate}`);
-};
+    router.push(`/emotiondetail?date=${formattedDate}`);
+  };
 
 
   // Obtenir l'image d'une émotion
@@ -117,6 +108,13 @@ const handleDayClick = (day: number) => {
     const emotion = emotionData.find(e => e.name === emotionName);
     return emotion?.imageStatic || '/icons/default.svg';
   };
+
+  // Obtenir la couleur de background d'une emotion
+  const getEmotionBackground = (emotionName: string) => {
+      const emotion = emotionData.find(e => e.name === emotionName);
+      return emotion?.color || 'transparent';
+  }
+
 
   return (
     <IonPage>
@@ -131,7 +129,7 @@ const handleDayClick = (day: number) => {
               {monthNames[calendarDate.getMonth()]} {calendarDate.getFullYear()}
             </span>
             <div onClick={() => changeMonth('next')}>
-            <img src="/images/right.svg" alt="" />
+              <img src="/images/right.svg" alt="" />
             </div>
           </div>
 
@@ -139,26 +137,38 @@ const handleDayClick = (day: number) => {
           {loading ? (
             <p>Chargement...</p>
           ) : (
-            <div className="calendar">
-              {days.map((day) => (
-                <div
-                  key={day}
-                  className={`calendar-day ${emotionsByDay[day] ? '' : 'no-emotion'}`}
-                  onClick={() => handleDayClick(day)}
-                >
-                  <div className="day-number">{day}</div>
-                  <div className="emotions-list">
-                    {emotionsByDay[day]?.map((emotion, index) => (
-                      <img
-                        key={index}
-                        src={getEmotionIcon(emotion.emotionName)}
-                        alt={emotion.emotionName}
-                        className="emotion-icon"
-                      />
-                    ))}
+            <div className="calendar-background">
+              <div className="calendar">
+                {days.map((day) => (
+                  <div
+                    key={day}
+                    className={`calendar-day ${emotionsByDay[day] ? '' : 'no-emotion'}`}
+                    onClick={() => handleDayClick(day)}
+                  >
+                    <div className="day-number">{day}</div>
+                    <div className="emotions-list">
+                      {emotionsByDay[day]?.map((emotion, index) => (
+                        <div
+                          key={index}
+                          className="emotion-icon-container"
+                          
+                        >
+                          <img
+                            src={getEmotionIcon(emotion.emotionName)}
+                            alt={emotion.emotionName}
+                            className="emotion-icon"
+                          />
+                          <div style={{ backgroundColor: getEmotionBackground(emotion.emotionName) }}
+                          className='emotion-background'
+                          >
+
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
