@@ -1,5 +1,4 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonButton, IonIcon, IonText, useIonRouter } from '@ionic/react';
-import ExploreContainer from '../components/ExploreContainer';
 import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 import { useEffect, useState } from 'react';
 import { arrowBackOutline, copyOutline } from 'ionicons/icons';

@@ -49,6 +49,7 @@ import Erasedata from './pages/Erasedata';
 import Confidentialite from './pages/Confidentialite';
 import Utilisation from './pages/Utilisation';
 import Permission from './pages/Permission';
+import OnBoarding1 from './pages/OnBoarding/OnBoarding1';
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -176,6 +177,9 @@ const App: React.FC = () => {
                 </Route>
                 <Route exact path="/tab2">
                   <Tab2 />
+                </Route>
+                <Route exact path="/onboarding1">
+                  <OnBoarding1 />
                 </Route>
                 <Route exact path="/params">
                   <Params />
