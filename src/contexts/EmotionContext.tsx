@@ -7,7 +7,8 @@ interface EmotionContextType {
   background: string;
   latitude?: number;
   longitude?: number;
-  setEmotion: (emotion: string, image: string, background: string, latitude: number, longitude: number) => void;
+  onboardingpagenumber?: number;
+  setEmotion: (emotion: string, image: string, background: string, latitude: number, longitude: number, onboardingpagenumber : number) => void;
 }
 
 // Create a context with default values
@@ -19,6 +20,7 @@ export const EmotionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [background, setBackgroundState] = useState<string>('');
   const [latitude, setLatitude] = useState<number>();
   const [longitude, setLongitude] = useState<number>();
+  const [onboardingpagenumber, setonboardingpagenumber] = useState<number>();
 
   // Check if running in the browser and access localStorage accordingly
   useEffect(() => {
@@ -60,7 +62,7 @@ export const EmotionProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   return (
-    <EmotionContext.Provider value={{ emotion, image, background, setEmotion: updateEmotion, latitude, longitude }}>
+    <EmotionContext.Provider value={{ emotion, image, background, setEmotion: updateEmotion, latitude, longitude, onboardingpagenumber }}>
       {children}
     </EmotionContext.Provider>
   );
