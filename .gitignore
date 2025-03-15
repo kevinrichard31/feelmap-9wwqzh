@@ -5,6 +5,7 @@
 /api/node_modules
 /api/.env
 /api/prod
+/test/node_modules
 /.pnp
 .pnp.js
 
