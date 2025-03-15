@@ -10,12 +10,11 @@ interface Props {
   currentStep: [number, number];
 }
 
-const OnBoarding2: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
+const OnBoarding5: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
   const setBackgroundClass = useBackgroundStore((state) => state.setBackgroundClass);
 
   useEffect(() => {
     setBackgroundClass('background2-content');
-    console.log('hello');
   }, [setBackgroundClass]); // Ajoute setBackgroundClass comme dépendance pour éviter des problèmes de closure.
 
   return (
@@ -26,16 +25,15 @@ const OnBoarding2: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
         exit={{ opacity: 0, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <img src="./images/onboarding/iconright.svg" alt="" className={styles['iconright']} />
-        <div className={styles['title']} style={{ paddingTop: '45px', marginBottom: '15px' }}>Note tes émotions <br></br>
-          <span className={styles['title-bold']}>au quotidien ✍️</span>
+        <img src="./images/onboarding/shield-feeloo.svg" alt="" className={styles['iconright']} />
+        <div className={styles['title']} style={{ paddingTop: '45px', marginBottom: '15px' }}>
+          Espace
+          <br></br>
+          <span className={styles['title-bold']}>100% personnel 🔒</span>
         </div>
-        <p>Prends quelques secondes chaque jour pour noter comment tu te sens. Cela t’aidera à mieux comprendre ton état d’esprit.</p>
-        <div className={styles['square-container']}>
-          <div className={styles['square']}>
-          </div>
-          <div className={styles['square-background']}>
-          </div>
+        <p>Tes émotions sont privées. Cet espace est à toi, et toi seul(e) y as accès.</p>
+        <div className={styles['ob3traits-container']}>
+          <img src="./images/onboarding/shield.svg" alt="" className={styles['shield-image']} />
         </div>
         {/* Bouton "Suivant" */}
         <div className={styles['next-container']}>
@@ -52,4 +50,4 @@ const OnBoarding2: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
   );
 };
 
-export default OnBoarding2;
+export default OnBoarding5;

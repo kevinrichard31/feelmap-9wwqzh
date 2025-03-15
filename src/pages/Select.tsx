@@ -14,7 +14,7 @@ const Select: React.FC = () => {
   const [isPointerDown, setIsPointerDown] = useState(false);  // Pour savoir si l'appui est maintenu
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);  // Nouveau state pour l'élément sélectionné
   const audio = new Audio('/pop.mp3');
-  const {t } = useTranslation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     FirebaseAnalytics.setScreenName({
@@ -34,12 +34,12 @@ const Select: React.FC = () => {
     setIsPointerDown(true); // L'appui est maintenu
     // Récupérer directement l'élément cible du touché
     const targetElement = event.target as HTMLElement; // Assurez-vous que l'élément est un HTMLElement
-  
+
     // Vérifier si l'élément ou un de ses parents possède la classe 'container-emoji-single'
     const emojiElement = targetElement.classList.contains('container-emoji-single')
       ? targetElement
       : targetElement.closest('.container-emoji-single') as HTMLElement;
-  
+
     // Si un élément avec la classe 'container-emoji-single' a été trouvé
     if (emojiElement) {
       // Si l'élément sélectionné est différent de celui actuel, on joue le son et met à jour l'état
@@ -54,14 +54,14 @@ const Select: React.FC = () => {
       allElements.forEach((el) => {
         el.classList.remove('active2');
       });
-  
+
       // Ajouter la classe 'active' à l'élément sélectionné
       emojiElement.classList.add('active2');
-      
+
       console.log('Element trouvé:', emojiElement);
     }
   };
-  
+
 
   const handlePointerEnd = () => {
     setIsPointerDown(false); // L'appui a été relâché
@@ -77,14 +77,14 @@ const Select: React.FC = () => {
     if (isPointerDown) {
       // Si l'appui est maintenu, on récupère les coordonnées du doigt
       const { clientX, clientY } = event.touches[0];
-  
+
       // On récupère l'élément sous la position clientX, clientY
       const elementUnderFinger = document.elementFromPoint(clientX, clientY);
       // On vérifie si l'élément a la classe 'container-emoji-single', sinon on vérifie son parent
       const targetElement = elementUnderFinger?.classList.contains('container-emoji-single')
         ? elementUnderFinger
         : elementUnderFinger?.closest('.container-emoji-single');
-  
+
       // Si un élément avec la classe a été trouvé
       if (targetElement) {
         // Si l'élément sélectionné est différent de celui actuel, on joue le son et met à jour l'état
@@ -100,13 +100,13 @@ const Select: React.FC = () => {
           el.classList.remove('active');
           el.classList.remove('active2');
         });
-  
+
         // Ajouter la classe 'active' à l'élément sélectionné
         targetElement.classList.add('active');
-        
+
         console.log('Element trouvé:', targetElement);
       }
-  
+
       console.log('Position du doigt:', clientX, clientY);
     }
   };
@@ -119,20 +119,20 @@ const Select: React.FC = () => {
       >
         <div className="emotion-selector">
           <div className="title">
-          {t('howdoyoufeel')}, <br /> <span className='bold'>{t('now')}</span>
-          <button onClick={() => i18n.changeLanguage('br')}>br</button>
+            {t('howdoyoufeel')}, <br /> <span className='bold'>{t('now')}</span>
+            {/* <button onClick={() => i18n.changeLanguage('br')}>br</button>
             <button onClick={() => i18n.changeLanguage('jp')}>jp</button>
             <button onClick={() => i18n.changeLanguage('fr')}>fr</button>
-      <button onClick={() => i18n.changeLanguage('en')}>en</button>
+            <button onClick={() => i18n.changeLanguage('en')}>en</button> */}
           </div>
 
           <div className="choose-emotion">
-          {t('chooseyouremotion')} <img src="images/arrow-down.svg" alt="" />
+            {t('chooseyouremotion')} <img src="images/arrow-down.svg" alt="" />
           </div>
           <div className="wrap-emoji"
-                onTouchStart={handlePointerStart}  // Détecte le début du toucher
-                onTouchEnd={handlePointerEnd}      // Détecte la fin du toucher
-                onTouchMove={handlePointerMove}    // Détecte le mouvement du doigt
+            onTouchStart={handlePointerStart}  // Détecte le début du toucher
+            onTouchEnd={handlePointerEnd}      // Détecte la fin du toucher
+            onTouchMove={handlePointerMove}    // Détecte le mouvement du doigt
           >
             {emotions.map(({ name, image, imageStatic, background, color }) => (
               <div

@@ -1,0 +1,13 @@
+.background1-content {
+    background-image: url('./images/onboarding1-bg.svg');
+    height: 100%;
+    background-size: cover;
+    position: relative;
+}
+
+.background2-content {
+    background-image: url('./images/onboarding/background2.svg');
+    height: 100%;
+    background-size: cover;
+    position: relative;
+}

@@ -215,7 +215,7 @@ const App: React.FC = () => {
                     <SelectPlace />
                   </Route>
                   <Route exact path="/">
-                    <Redirect to="/select" />
+                    <Redirect to="/onboarding" />
                   </Route>
                   <Route path="/stats">
                     <Stats />

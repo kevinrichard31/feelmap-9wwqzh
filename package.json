@@ -40,7 +40,8 @@
     "react-router": "^5.3.4",
     "react-router-dom": "^5.3.4",
     "react-transition-group": "^4.4.5",
-    "redux": "^5.0.1"
+    "redux": "^5.0.1",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2",
