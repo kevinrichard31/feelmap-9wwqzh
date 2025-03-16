@@ -1,12 +1,16 @@
 // utils/api.ts
 const API_URL = import.meta.env.VITE_API_URL;
+
+// Define the TimeRangeKey type
+export type TimeRangeKey = 'last_7_days' | 'this_month' | 'last_month' | 'last_3_months' | 'today' | 'all';
+
 export const saveEmotion = async (
-  userId: string, 
-  userPassword: string, 
-  emotionDetails: { 
-    latitude: number, 
-    longitude: number, 
-    emotionName: string, 
+  userId: string,
+  userPassword: string,
+  emotionDetails: {
+    latitude: number,
+    longitude: number,
+    emotionName: string,
     description: string,
     city?: string,
     amenity?: string,
@@ -302,7 +306,7 @@ export const getLastEmotion = async (userId: string, userPassword: string) => {
 };
 
 
-export const getAggregatedScores = async (userId: string, timeRange: 'last_7_days' | 'this_month' | 'last_month' | 'last_3_months' | 'today' | 'all') => {
+export const getAggregatedScores = async (userId: string, timeRange: TimeRangeKey) => {
   try {
     let apiUrl = `${API_URL}/users/${userId}/aggregated-scores`;
 
