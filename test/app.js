@@ -1,17 +1,15 @@
-const express = require('express');
-const app = express();
-const port = 3000;
+const { Client } = require('pg');
 
-// Route pour la racine (/) qui renvoie un message
-app.get('/', (req, res) => {
-  // Définition du message à renvoyer
-  const message = "Bienvenue sur mon application Express!";
-
-  // Utilisation de la méthode `send()` pour envoyer le message au client
-  res.send(message);
+const client = new Client({
+  user: 'root',
+  host: '217.154.16.191',
+  database: 'feelmap',
+  password: 'ceFqn8hC',
+  port: 5432,
+  connectionTimeoutMillis: 30000
 });
 
-// Démarrage du serveur et écoute sur le port spécifié
-app.listen(port, () => {
-  console.log(`L'application est en cours d'exécution sur le port ${port}`);
-});
+client.connect()
+  .then(() => console.log('Connexion réussie!'))
+  .catch(e => console.error('Erreur de connexion:', e))
+  .finally(() => client.end());

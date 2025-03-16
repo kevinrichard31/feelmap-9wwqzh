@@ -14,7 +14,13 @@ const sequelize = new Sequelize(
       charset: 'utf8', // PostgreSQL utilise un encodage UTF-8 par défaut
       collate: 'utf8_unicode_ci', // Cela peut être ignoré pour PostgreSQL
     },
-    logging: false
+    logging: false,
+    dialectOptions: {
+      connectTimeout: 30000,
+      ssl: {
+        rejectUnauthorized: false  // À utiliser uniquement en développement
+      }
+    }
   }
 
   

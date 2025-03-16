@@ -4,7 +4,13 @@ const _ = require('lodash');
 const cors = require('cors'); // Importer le middleware CORS
 const sequelize = require('./config/database');
 const User = require('./models/User'); // Modèle User
-
+// Au démarrage de votre application
+sequelize.authenticate()
+  .then(() => console.log('Connexion à la base de données établie avec succès'))
+  .catch(err => console.error('Impossible de se connecter à la base de données:', err));
+  sequelize.query('CREATE SCHEMA IF NOT EXISTS public;')
+  .then(() => sequelize.sync())
+  .catch(err => console.error('Erreur:', err));
 const moment = require('moment');
 const Lang = require('./models/Lang'); // Modèle Lang
 const EmotionHasTraits = require('./models/EmotionHasTraits'); // Modèle EmotionHasTraits
