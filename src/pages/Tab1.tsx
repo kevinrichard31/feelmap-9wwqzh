@@ -8,7 +8,6 @@ import 'leaflet/dist/leaflet.css';
 import markerIcon from '../icons/current.svg';
 import { getAllEmotionsWithAuth } from '../utils/api';
 import { emotions as emotionData } from '../data/emotions';
-import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 
 const Tab1: React.FC = () => {
   const [coordinates, setCoordinates] = useState<Position | null>(null);
@@ -16,13 +15,6 @@ const Tab1: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [emotions, setEmotions] = useState<any[]>([]);
   const routerLink = useIonRouter();
-
-  useEffect(() => {
-    FirebaseAnalytics.setScreenName({
-      screenName: 'map',  // Nom de l'écran
-      nameOverride: 'mapView',  // Facultatif : remplace le nom de la classe de l'écran
-    });
-  }, []);
 
   // Référence pour la carte Leaflet
   const mapRef = React.useRef<L.Map | null>(null);

@@ -1,5 +1,5 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonButton, IonIcon, IonText, useIonRouter } from '@ionic/react';
-import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
+
 import { useEffect, useState } from 'react';
 import { arrowBackOutline, copyOutline } from 'ionicons/icons';
 import { Link, useHistory } from 'react-router-dom';
@@ -14,10 +14,6 @@ const Params: React.FC = () => {
   const router = useIonRouter();
 
   useEffect(() => {
-    FirebaseAnalytics.setScreenName({
-      screenName: 'params',
-      nameOverride: 'paramsView',
-    });
 
     const id = localStorage.getItem('password');
     setFeelmapId(id);

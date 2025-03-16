@@ -2,7 +2,6 @@ import { IonContent, IonPage, useIonRouter } from '@ionic/react';
 import { useEffect, useState } from 'react';
 import { emotions } from '../data/emotions';
 import { useEmotion } from '../contexts/EmotionContext';
-import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import './Select.css';
 import { useTranslation, initReactI18next } from "react-i18next";
@@ -15,13 +14,6 @@ const Select: React.FC = () => {
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);  // Nouveau state pour l'élément sélectionné
   const audio = new Audio('/pop.mp3');
   const { t } = useTranslation();
-
-  useEffect(() => {
-    FirebaseAnalytics.setScreenName({
-      screenName: 'select',  // Nom de l'écran
-      nameOverride: 'SelectEmotion',  // Facultatif : remplace le nom de la classe de l'écran
-    });
-  }, []);
 
   const handleClick = (emotion: string, image: string, background: string) => {
     console.log('coucou');
