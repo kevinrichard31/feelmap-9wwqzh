@@ -60,3 +60,10 @@
 button.item-native {
   padding-left: 0px;
 }
+
+.tab-button {
+  --color: black; /* Rouge clair pour inactif */
+  --color-selected: black; /* Rouge vif pour actif */
+  --background: transparent;
+  --ripple-color: black; /* Couleur de l'effet ripple */
+}

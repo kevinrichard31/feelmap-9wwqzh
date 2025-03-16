@@ -1,16 +1,15 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 // import './permission.css';
-import { IonContent, IonPage } from '@ionic/react';
-import { Link, useHistory } from 'react-router-dom';
+import { IonContent, IonPage, useIonRouter } from '@ionic/react';
 
 
 const Permission: React.FC = () => {
-  const history = useHistory();
+  const router = useIonRouter();
   return (
     <IonPage>
       <IonContent className="ion-padding">
-      <img src="/images/back.svg" alt="Retour"onClick={() => history.goBack()}/>
+      <img src="/images/back.svg" alt="Retour"onClick={() => router.goBack()}/>
         <div style={{ padding: '15px' }}>
           <div className='describe-title'>Permissions</div>
           <div>Pour vous offrir la meilleure expérience possible, Feelmap requiert certaines permissions sur votre appareil. Vous pouvez consulter et modifier ces autorisations à tout moment.</div>

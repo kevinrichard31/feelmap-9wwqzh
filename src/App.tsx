@@ -188,10 +188,10 @@ const App: React.FC = () => {
                   <Route path="/params/confidentialite">
                     <Confidentialite />
                   </Route>
-                  <Route exact path="/params/utilisation">
+                  <Route path="/params/utilisation">
                     <Utilisation />
                   </Route>
-                  <Route exact path="/params/permission">
+                  <Route path="/params/permission">
                     <Permission />
                   </Route>
 
@@ -227,6 +227,7 @@ const App: React.FC = () => {
                     href="/tab1"
                     style={tabButtonStyle('tab1')}
                     onClick={() => setActiveTab('tab1')}
+                    className="tab-button" // Add a class for styling
                   >
                     <IonIcon aria-hidden="true" icon={location} />
                   </IonTabButton>
@@ -235,6 +236,7 @@ const App: React.FC = () => {
                     href="/tab2"
                     style={tabButtonStyle('tab2')}
                     onClick={() => setActiveTab('tab2')}
+                    className="tab-button" // Add a class for styling
                   >
                     <IonIcon aria-hidden="true" icon={calendarNumber} />
                   </IonTabButton>
@@ -243,6 +245,7 @@ const App: React.FC = () => {
                     href="/stats"
                     style={tabButtonStyle('stats')}
                     onClick={() => setActiveTab('stats')}
+                    className="tab-button" // Add a class for styling
                   >
                     <IonIcon aria-hidden="true" icon={analytics} />
                   </IonTabButton>
@@ -251,6 +254,7 @@ const App: React.FC = () => {
                     href="/params"
                     style={tabButtonStyle('params')}
                     onClick={() => setActiveTab('params')}
+                    className="tab-button" // Add a class for styling
                   >
                     <IonIcon aria-hidden="true" icon={settings} />
                   </IonTabButton>
