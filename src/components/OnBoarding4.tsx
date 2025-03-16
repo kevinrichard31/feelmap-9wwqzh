@@ -23,7 +23,7 @@ const OnBoarding4: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
   const requestGeolocation = async () => {
     setLoadingGeolocation(true);
     try {
-      await Geolocation.getCurrentPosition();
+      await Geolocation.getCurrentPosition({enableHighAccuracy: true});
       setGeolocationEnabled(true);
       setLoadingGeolocation(false);
       console.log("Géolocalisation activée avec succès !");
@@ -56,7 +56,7 @@ const OnBoarding4: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
           <br></br>
           <span className={styles['title-bold']}>vraiment bien ?</span>
         </div>
-        <p>Identifie les lieux qui boostent ton énergie et ceux qui te pèsent. Apprends à mieux choisir ton environnement.</p>
+        <p className={styles['onboarding-p']}>Identifie les lieux qui boostent ton énergie et ceux qui te pèsent. Apprends à mieux choisir ton environnement.</p>
         <div className={styles['ob3traits-container']}>
           <img src="./images/onboarding/map.png" alt="" className={styles['map-image']} />
         </div>

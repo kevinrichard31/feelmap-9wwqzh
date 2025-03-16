@@ -31,7 +31,7 @@ const OnBoarding3: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
           <br></br>
           qui tu es vraiment
         </div>
-        <p>Visualise tes hauts, tes bas et tout ce qu’il y a entre les deux. Apprends à mieux comprendre tes émotions jour après jour.</p>
+        <p className={styles['onboarding-p']}>Visualise tes hauts, tes bas et tout ce qu’il y a entre les deux. Apprends à mieux comprendre tes émotions jour après jour.</p>
         <div className={styles['ob3traits-container']}>
           <img src="./images/onboarding/ob3traits.svg" alt="" className={styles['image']} />
         </div>

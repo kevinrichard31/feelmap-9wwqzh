@@ -33,7 +33,7 @@ const OnBoarding6: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
           <br></br>
           <span className={styles['title-bold']}>tes émotions ? 🚀</span>
         </div>
-        <p>C'est parti ! Commence dès maintenant et prends soin de ton bien-être émotionnel.</p>
+        <p className={styles['onboarding-p']}>C'est parti ! Commence dès maintenant et prends soin de ton bien-être émotionnel.</p>
         <div className={styles['ob3traits-container']}>
           <img src="./images/onboarding/emojis.svg" alt="" className={styles['shield-image']} />
         </div>

@@ -33,7 +33,11 @@ export const useOnboardingStore = create<OnboardingStore>()(
   )
 );
 
-const OnBoarding: React.FC = () => {
+interface OnBoardingProps {
+  setActiveTab: (tab: string) => void; // Add this prop
+}
+
+const OnBoarding: React.FC<OnBoardingProps> = ({ setActiveTab }) => {  // Update the function signature
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1); // 1 = avancer, -1 = reculer
   const maxStep = 6;
@@ -46,9 +50,10 @@ const OnBoarding: React.FC = () => {
     console.log('hello')
     console.log(hasCompletedOnboarding)
     if (hasCompletedOnboarding) {
+      setActiveTab('');  // Clear active tab before navigating
       router.push('/select', 'forward', 'replace');
     }
-  }, [hasCompletedOnboarding, router]);
+  }, [hasCompletedOnboarding, router, setActiveTab]);
 
   useIonViewWillEnter(() => {
     const tabBar = document.querySelector('ion-tab-bar') as HTMLElement | null;
@@ -73,6 +78,7 @@ const OnBoarding: React.FC = () => {
     } else if (step === maxStep) {
       // User has completed the onboarding
       setOnboardingCompleted(true);
+      setActiveTab(''); // Clear active tab before navigating
       router.push('/select', 'forward', 'replace');
     }
 

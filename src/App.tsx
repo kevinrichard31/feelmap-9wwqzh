@@ -50,6 +50,9 @@ import Confidentialite from './pages/Confidentialite';
 import Utilisation from './pages/Utilisation';
 import Permission from './pages/Permission';
 import OnBoarding from './pages/OnBoarding/OnBoarding';
+import { createAnimation } from '@ionic/react';
+
+
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -57,6 +60,19 @@ const App: React.FC = () => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const router = useIonRouter();
   const [activeTab, setActiveTab] = useState('tab1'); // Initialize with a default tab
+
+  const enterAnimation = (baseEl: any) => {
+    const root = baseEl.shadowRoot || baseEl;
+
+    const animation = createAnimation()
+      .addElement(root.querySelector('.ion-page'))
+      .duration(500)
+      .easing('ease-out')
+      .fromTo('transform', 'translateX(100%)', 'translateX(0%)')
+      .fromTo('opacity', '0', '1');
+
+    return animation;
+  };
 
   useEffect(() => {
     const initialize = async () => {
@@ -166,106 +182,107 @@ const App: React.FC = () => {
   });
 
   return (
-      <EmotionProvider>
-        <IonApp>
-          <IonReactRouter>
-            <div className='container-relative'>
-              <IonTabs>
-                <IonRouterOutlet>
-                  <Route exact path="/tab1">
-                    <Tab1 />
-                  </Route>
-                  <Route exact path="/tab2">
-                    <Tab2 />
-                  </Route>
-                  <Route exact path="/onboarding">
-                    <OnBoarding />
-                  </Route>
-                  <Route exact path="/params">
-                    <Params />
-                  </Route>
+    <EmotionProvider>
+      <IonApp>
+        <IonReactRouter>
+          <div className='container-relative'>
+            <IonTabs>
+              <IonRouterOutlet>
+                <Route exact path="/tab1">
+                  <Tab1 />
+                </Route>
+                <Route exact path="/tab2">
+                  <Tab2 />
+                </Route>
+                <Route exact path="/onboarding">
+                  <OnBoarding setActiveTab={setActiveTab} />
+                </Route>
+                <Route exact path="/params">
+                  <Params />
+                </Route>
 
-                  <Route path="/params/confidentialite">
-                    <Confidentialite />
-                  </Route>
-                  <Route path="/params/utilisation">
-                    <Utilisation />
-                  </Route>
-                  <Route path="/params/permission">
-                    <Permission />
-                  </Route>
+                <Route path="/params/confidentialite">
+                  <Confidentialite />
+                </Route>
+                <Route path="/params/utilisation">
+                  <Utilisation />
+                </Route>
+                <Route path="/params/permission">
+                  <Permission />
+                </Route>
 
-                  <Route path="/restoredata">
-                    <Restoredata />
-                  </Route>
-                  <Route path="/erasedata">
-                    <Erasedata />
-                  </Route>
+                <Route path="/restoredata">
+                  <Restoredata />
+                </Route>
+                <Route path="/erasedata">
+                  <Erasedata />
+                </Route>
 
-                  <Route path="/select">
-                    <Select />
-                  </Route>
-                  <Route path="/describe">
-                    <Describe />
-                  </Route>
-                  <Route path="/emotiondetail">
-                    <EmotionDetail />
-                  </Route>
-                  <Route path="/selectplace">
-                    <SelectPlace />
-                  </Route>
-                  <Route exact path="/">
-                    <Redirect to="/onboarding" />
-                  </Route>
-                  <Route path="/stats">
-                    <Stats />
-                  </Route>
-                </IonRouterOutlet>
-                <IonTabBar slot="bottom" className={isKeyboardVisible ? 'hidden' : ''}>
-                  <IonTabButton
-                    tab="tab1"
-                    href="/tab1"
-                    style={tabButtonStyle('tab1')}
-                    onClick={() => setActiveTab('tab1')}
-                    className="tab-button" // Add a class for styling
-                  >
-                    <IonIcon aria-hidden="true" icon={location} />
-                  </IonTabButton>
-                  <IonTabButton
-                    tab="tab2"
-                    href="/tab2"
-                    style={tabButtonStyle('tab2')}
-                    onClick={() => setActiveTab('tab2')}
-                    className="tab-button" // Add a class for styling
-                  >
-                    <IonIcon aria-hidden="true" icon={calendarNumber} />
-                  </IonTabButton>
-                  <IonTabButton
-                    tab="stats"
-                    href="/stats"
-                    style={tabButtonStyle('stats')}
-                    onClick={() => setActiveTab('stats')}
-                    className="tab-button" // Add a class for styling
-                  >
-                    <IonIcon aria-hidden="true" icon={analytics} />
-                  </IonTabButton>
-                  <IonTabButton
-                    tab="params"
-                    href="/params"
-                    style={tabButtonStyle('params')}
-                    onClick={() => setActiveTab('params')}
-                    className="tab-button" // Add a class for styling
-                  >
-                    <IonIcon aria-hidden="true" icon={settings} />
-                  </IonTabButton>
-                  <IonTabButton disabled>
-                  </IonTabButton>
-                  <IonTabButton disabled>
-                  </IonTabButton>
-                </IonTabBar>
-              </IonTabs>
-            </div>
-            <IonRouterLink routerLink="/select" className={`tab3-button ${isKeyboardVisible ? 'hidden' : ''}`}>
+                <Route path="/select">
+                  <Select />
+                </Route>
+                <Route path="/describe">
+                  <Describe />
+                </Route>
+                <Route path="/emotiondetail">
+                  <EmotionDetail />
+                </Route>
+                <Route path="/selectplace">
+                  <SelectPlace />
+                </Route>
+                <Route exact path="/">
+                  <Redirect to="/onboarding" />
+                </Route>
+                <Route path="/stats">
+                  <Stats />
+                </Route>
+              </IonRouterOutlet>
+              <IonTabBar slot="bottom" className={isKeyboardVisible ? 'hidden' : ''}>
+                <IonTabButton
+                  tab="tab1"
+                  href="/tab1"
+                  style={tabButtonStyle('tab1')}
+                  onClick={() => setActiveTab('tab1')}
+                  className="tab-button" // Add a class for styling
+                >
+                  <IonIcon aria-hidden="true" icon={location} />
+                </IonTabButton>
+                <IonTabButton
+                  tab="tab2"
+                  href="/tab2"
+                  style={tabButtonStyle('tab2')}
+                  onClick={() => setActiveTab('tab2')}
+                  className="tab-button" // Add a class for styling
+                >
+                  <IonIcon aria-hidden="true" icon={calendarNumber} />
+                </IonTabButton>
+                <IonTabButton
+                  tab="stats"
+                  href="/stats"
+                  style={tabButtonStyle('stats')}
+                  onClick={() => setActiveTab('stats')}
+                  className="tab-button" // Add a class for styling
+                >
+                  <IonIcon aria-hidden="true" icon={analytics} />
+                </IonTabButton>
+                <IonTabButton
+                  tab="params"
+                  href="/params"
+                  style={tabButtonStyle('params')}
+                  onClick={() => setActiveTab('params')}
+                  className="tab-button" // Add a class for styling
+                >
+                  <IonIcon aria-hidden="true" icon={settings} />
+                </IonTabButton>
+                <IonTabButton disabled>
+                </IonTabButton>
+                <IonTabButton disabled>
+                </IonTabButton>
+              </IonTabBar>
+            </IonTabs>
+          </div>
+
+            <IonRouterLink routerLink="/select" onClick={() => setActiveTab('select')} className={`tab3-button ${isKeyboardVisible ? 'hidden' : ''}`}>
               <IonFabButton
                 className={`tab3-button-inside ${isKeyboardVisible ? 'hidden' : ''}`}
                 style={{ textDecoration: 'none' }}
@@ -273,9 +290,9 @@ const App: React.FC = () => {
                 <img src="/feellogo.svg" className="logo-button" alt="Logo" />
               </IonFabButton>
             </IonRouterLink>
-          </IonReactRouter>
-        </IonApp>
-      </EmotionProvider>
+        </IonReactRouter>
+      </IonApp>
+    </EmotionProvider>
   );
 };
 

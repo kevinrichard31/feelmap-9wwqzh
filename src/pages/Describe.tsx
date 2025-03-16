@@ -1,10 +1,11 @@
-import { IonContent, IonPage, IonButton, IonRouterLink, IonTextarea, useIonViewDidEnter } from '@ionic/react';
-import { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { IonContent, IonPage, IonButton, IonTextarea, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
 import { useIonRouter } from '@ionic/react';
 import { useEmotion } from '../contexts/EmotionContext';
-import { createUser, saveEmotion, getCityFromBDC, getAmenityFromNominatim } from '../utils/api';
+import { saveEmotion, getCityFromBDC, getAmenityFromNominatim } from '../utils/api';
 import './Describe.css';
 import { useTranslation } from 'react-i18next';
+import { Geolocation } from '@capacitor/geolocation';
 
 const MAX_CHARS = 500;
 
@@ -15,75 +16,68 @@ const Describe: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [charCount, setCharCount] = useState(0);
   const router = useIonRouter();
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
-  useIonViewDidEnter(() => {
+  // --- Set Focus on Textarea After View Enters ---
+  useIonViewWillEnter(() => {
     if (inputRef.current) {
       inputRef.current.setFocus();
     }
-  });
+  }, []);  // Run only once after component mounts
 
-  useEffect(() => {
-    const ionContentElement = document.querySelector('ion-content');
-
-    if (ionContentElement && background) {
-      // ionContentElement.style.setProperty('--ion-background-color', background);
+  // --- Get Current Location Using Capacitor Geolocation ---
+  const getLocation = useCallback(async () => {
+    try {
+      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+      const { latitude, longitude } = position.coords;
+      setEmotion(emotion, image, background, latitude, longitude);
+      setError(null); // Clear any previous errors
+    } catch (error: any) { // Explicitly type 'error' as 'any'
+      console.error('Error fetching location', error);
+      setError('Failed to get location: ' + error.message); // Include error message
     }
+  }, [emotion, image, background, setEmotion]);
+
+  // --- Fetch Location on Component Mount ---
+  useEffect(() => {
+    getLocation();
+
+    // Cleanup function (not really needed here, but good practice)
+    return () => {
+      // Any cleanup logic can go here (e.g., cancelling subscriptions)
+    };
+  }, [getLocation]);
+
+  // --- Handle Textarea Change ---
+  const handleTextChange = useCallback((event: CustomEvent) => {
+    const text = (event.detail.value || '') as string; // Explicitly cast to string
+    let newText = text;
+
+    if (text.length > MAX_CHARS) {
+      newText = text.slice(0, MAX_CHARS);
+    }
+    setCharCount(newText.length);
 
     if (inputRef.current) {
-      inputRef.current?.setFocus();
+      inputRef.current.value = newText;
     }
+  }, []);
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setEmotion(emotion, image, background, latitude, longitude);
-        },
-        (error) => {
-          console.error('Error fetching location', error);
-          setError('Failed to get location');
-        }
-      );
-    } else {
-      setError('Geolocation not supported');
-    }
-
-    return () => {
-      if (ionContentElement) {
-        ionContentElement.style.removeProperty('--ion-background-color');
-      }
-    };
-  }, [background, emotion, image, setEmotion]);
-
-  const asyncLocalStorage = {
-    getItem: async (key: string): Promise<string | null> => {
-      return Promise.resolve(localStorage.getItem(key));
-    },
-    setItem: async (key: string, value: string): Promise<void> => {
-      return Promise.resolve(localStorage.setItem(key, value));
-    },
-  };
-
-  const handleTextChange = (event: CustomEvent) => {
-    const text = event.detail.value || '';
-    setCharCount(text.length);
-    
-    if (text.length > MAX_CHARS) {
-      inputRef.current!.value = text.slice(0, MAX_CHARS);
-      setCharCount(MAX_CHARS);
-    }
-  };
-
-  const handleSave = async () => {
-    let userId = await asyncLocalStorage.getItem('userId');
-    let userPassword = await asyncLocalStorage.getItem('password');
-
+  // --- Save Emotion Data ---
+  const handleSave = useCallback(async () => {
     setIsSaving(true);
     setError(null);
 
     try {
-      const [city, { amenity, type }] = await Promise.all([
+      const userId = localStorage.getItem('userId') || '';
+      const userPassword = localStorage.getItem('password') || '';
+
+      if (!userId || !userPassword) {
+        setError('User not logged in.');
+        return;
+      }
+
+      const [city, placeDetails] = await Promise.all([
         getCityFromBDC(latitude ?? 0, longitude ?? 0),
         getAmenityFromNominatim(latitude ?? 0, longitude ?? 0),
       ]);
@@ -94,15 +88,11 @@ const Describe: React.FC = () => {
         emotionName: emotion || '',
         description: inputRef.current?.value || '',
         city,
-        amenity,
-        type
+        amenity: placeDetails?.amenity || '', // Handle potential undefined values
+        type: placeDetails?.type || '',     // Handle potential undefined values
       };
 
-      const result = await saveEmotion(
-        userId || '',
-        userPassword || '',
-        emotionDetails
-      );
+      const result = await saveEmotion(userId, userPassword, emotionDetails);
 
       if (result) {
         console.log('Emotion saved successfully:', result);
@@ -114,30 +104,34 @@ const Describe: React.FC = () => {
       } else {
         setError('Failed to save emotion');
       }
-    } catch (err) {
-      console.error('Error saving emotion:', err);
-      setError('An error occurred while saving your emotion');
+    } catch (error: any) { // Explicitly type 'error' as 'any'
+      console.error('Error saving emotion:', error);
+      setError(`An error occurred while saving your emotion: ${error.message}`); // Include error message
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [emotion, latitude, longitude, router, saveEmotion]);
 
-  const goToSelect = () => {
+  // --- Go Back to Select Page ---
+  const goToSelect = useCallback(() => {
     router.push('/select', 'back');
-  };
+  }, [router]);
 
   return (
     <IonPage className="describe">
       <IonContent>
         <div className='content-container'>
           <div className="container-input">
-            <img src="/images/back.svg" alt="Retour" className="back-img" onClick={goToSelect}/>
+            <img src="/images/back.svg" alt="Retour" className="back-img" onClick={goToSelect} />
             <div className='container-title'>
               <img src={image} className="emoji-size" alt="Emotion" />
-              <div className="describe-title">{t('youchoosed')} {t(emotion)} <br /><span className='describe-title-bold'>{t('describewhathappen')} :</span></div>
+              <div className="describe-title">
+                {t('youchoosed')} {t(emotion)} <br />
+                <span className='describe-title-bold'>{t('describewhathappen')} :</span>
+              </div>
             </div>
             <div className="textarea-container">
-              <IonTextarea 
+              <IonTextarea
                 ref={inputRef}
                 onIonInput={handleTextChange}
                 placeholder={t('describeyouremotion')}
@@ -148,10 +142,10 @@ const Describe: React.FC = () => {
                 {charCount}/{MAX_CHARS}
               </div>
             </div>
-            <IonButton 
-              className="button-next" 
-              onClick={handleSave} 
-              disabled={isSaving || charCount === 0} 
+            <IonButton
+              className="button-next"
+              onClick={handleSave}
+              disabled={isSaving || charCount === 0}
               expand="full"
             >
               {isSaving ? 'Enregistrement...' : t('register')}

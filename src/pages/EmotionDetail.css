@@ -79,7 +79,14 @@ html {
 
   .emotion-detail-container .description {
     font-size: 14px;
-    padding-right: 10px;
+    padding: 5px 10px;
+    margin-left: 30px;
+    background-color: #f4c250;
+    border-radius: 16px 16px 4px 16px;
+    color: #000000;
+    margin-top: 0px;
+    margin-bottom: 15px;
+    width: fit-content;
   }
 
   h2 {

@@ -31,7 +31,7 @@ const OnBoarding5: React.FC<Props> = ({ onNext, onBack, currentStep }) => {
           <br></br>
           <span className={styles['title-bold']}>100% personnel 🔒</span>
         </div>
-        <p>Tes émotions sont privées. Cet espace est à toi, et toi seul(e) y as accès.</p>
+        <p className={styles['onboarding-p']}>Tes émotions sont privées. Cet espace est à toi, et toi seul(e) y as accès.</p>
         <div className={styles['ob3traits-container']}>
           <img src="./images/onboarding/shield.svg" alt="" className={styles['shield-image']} />
         </div>
