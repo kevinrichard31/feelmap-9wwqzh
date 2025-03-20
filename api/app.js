@@ -35,7 +35,7 @@ const client = new OpenAI({
 
 const app = express();
 
-const allowedOrigins = ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://localhost', 'http://localhost', 'capacitor://localhost']; // Liste des origines autorisées
+const allowedOrigins = ['https://launch.feelmap-app.com', 'http://localhost:5173', 'http://localhost:8100', 'https://localhost', 'http://localhost', 'capacitor://localhost']; // Liste des origines autorisées
 // Configurer CORS pour permettre les requêtes depuis 'http://localhost:3000'
 // Gérer manuellement les requêtes OPTIONS pour renvoyer un 200
 app.options('*', (req, res) => {
@@ -51,7 +51,7 @@ app.options('*', (req, res) => {
 
 // Middleware CORS sans inclure OPTIONS
 app.use(cors({
-  origin: ['https://launch.feelmap-app.com', 'http://localhost:5173', 'https://www.launch.feelmap-app.com', 'launch.feelmap-app.com', 'https://localhost', 'http://localhost', 'capacitor://localhost'], // Domaines autorisés
+  origin: ['https://launch.feelmap-app.com', 'http://localhost:5173', 'http://localhost:8100', 'https://www.launch.feelmap-app.com', 'launch.feelmap-app.com', 'https://localhost', 'http://localhost', 'capacitor://localhost'], // Domaines autorisés
   methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'], // Sans OPTIONS
   credentials: true, // Autoriser les cookies/headers d'autorisation
 }));
@@ -318,7 +318,8 @@ app.patch('/emotions/:id/place-type', async (req, res) => {
   const { id } = req.params; // ID de l'émotion à mettre à jour
   const { userId, userPassword, placeTypeId } = req.body;
   console.log('Body reçu:', req.body);
-
+  console.log("🌱 - ID PARAMS - placeTypeId:", id)
+  
   if (!userId || !userPassword || !placeTypeId) {
     console.log('Erreur: paramètres manquants');
     return res.status(400).json({ error: 'User ID, password, and placeTypeId are required' });
@@ -356,6 +357,7 @@ app.patch('/emotions/:id/place-type', async (req, res) => {
 // Route pour récupérer la dernière émotion d'un utilisateur
 app.get('/emotions/last', async (req, res) => {
   const { userId, userPassword } = req.query;  // Récupération des paramètres de l'URL
+  console.log("🌱 - app.get - userId:", userId)
   console.log(userId);
   console.log(userPassword);
 
@@ -373,6 +375,7 @@ app.get('/emotions/last', async (req, res) => {
     if (!lastEmotion) {
       return res.status(404).json({ message: 'No emotions found for this user' });
     }
+    console.log("🌱 - lastEmotion:")
     console.log(lastEmotion);
     res.json(lastEmotion);
   } catch (error) {
@@ -380,6 +383,7 @@ app.get('/emotions/last', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
