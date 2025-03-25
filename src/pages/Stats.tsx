@@ -260,9 +260,14 @@ const Stats: React.FC = () => {
                 )}
               </div>
             ))}
+            <div>
+              
+            </div>
           </div>
 
-          <div style={{ height: 200 }}></div>
+          <div style={{ height: '300px', color: 'grey', fontSize: '12px' }}>
+          Les textes, contenus et indicateurs (positifs ou négatifs) affichés dans cette application sont présentés à des fins purement ludiques et de divertissement. Ils ne doivent en aucun cas être interprétés comme des données médicales, scientifiques, psychologiques ou de tout autre domaine professionnel. Ils sont générés par un algorithme à des fins de divertissement et ne reflètent pas une réalité médicale ou un avis professionnel. Pour toute question ou préoccupation liée à votre santé physique ou mentale, ou nécessitant un avis expert, consultez un professionnel qualifié.
+          </div>
         </div>
       </IonContent>
     </IonPage>
